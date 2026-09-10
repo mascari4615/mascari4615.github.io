@@ -16,9 +16,11 @@
  * ## 쓰기 (2단계)
  *
  * 쓰기는 **append 전용 이벤트 파일**. summary.json 은 생성기 소관이라 화면이 안 건드림.
- * 파일 하나에 이벤트 하나, 경로는 `bookmarks/events/<YYYY-MM>/<epoch-ms>-<device6>.json`,
- * 수정과 삭제 없음. 화면이 보는 값은 summary 의 `foldedThrough` 이후 이벤트를 항목 위에
- * 덮은 결과. 같은 대상에 대해 `at` 이 늦은 이벤트가 이기고, 덮는 범위는 그 이벤트의 type 이
+ * 파일 하나에 이벤트 하나, 경로는
+ * `bookmarks/events/<YYYY-MM>/<epoch-ms>-<device6>-<nonce4>.json`, 수정과 삭제 없음.
+ * `nonce4` 는 탭마다 다른 4자 hex (셸이 만들고 탭 수명 동안 고정). 같은 기기에서 탭 둘이
+ * 같은 ms 에 저장해도 경로 안 겹침. 옛 꼴 `<epoch-ms>-<device6>.json` 도 읽음.
+ * 화면이 보는 값은 summary 의 `foldedThrough` 이후 이벤트를 항목 위에 덮은 결과. 같은 대상에 대해 `at` 이 늦은 이벤트가 이기고, 덮는 범위는 그 이벤트의 type 이
  * 가진 축뿐 (tag 는 intent 와 domain, priority 는 priority, status 는 status, note 는 note).
  * `bundle:<묶음 열쇠>` 대상은 그 묶음 전체에 걸리되 항목 개별 이벤트가 더 늦으면 개별이 승.
  *
@@ -110,7 +112,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   const DATA_DIR = 'data/bookmarks';
   const SUMMARY_PATH = DATA_DIR + '/summary.json';
   const AXES_PATH = DATA_DIR + '/axes.json';
-  /** 이벤트 뿌리. 이 아래가 `<YYYY-MM>/<epoch-ms>-<device6>.json` */
+  /** 이벤트 뿌리. 이 아래가 `<YYYY-MM>/<epoch-ms>-<device6>-<nonce4>.json` */
   const EVENTS_DIR = 'bookmarks/events';
 
   /** 이 패널이 아는 봉투 판. 메이저가 다르면 반쯤 그리지 않고 다시 배포하라고 적는다 */
@@ -139,9 +141,15 @@ import { t, loadNamespace } from '../../lib/i18n';
   const NOW_CAP_FALLBACK = 8;
   /** 한 달 폴더 안에서 동시에 읽을 이벤트 파일 수. 수백 건이 한 번에 나가는 것 방지 */
   const EVENT_READ_LIMIT = 8;
+  /** 일괄 적용에서 쓰기 요청 사이 간격 ms. 한 건씩 순차라 왕복 시간이 여기 더해진다 */
+  const BULK_GAP_MS = 150;
   /** 출처 칸 차례. 나머지는 뒤에 이름순으로 붙는다 */
   const SRC_ORDER = ['x', 'edge', 'kakao'];
   const KST_OFFSET_MS = 9 * 3600000;
+
+  function gap(): Promise<void> {
+    return new Promise<void>((done) => window.setTimeout(done, BULK_GAP_MS));
+  }
 
   /** 출처 차례 재는 자. 칩 줄과 재발굴 후보가 같은 차례를 쓴다 */
   function bySrcOrder(a: string, b: string): number {
@@ -167,9 +175,12 @@ import { t, loadNamespace } from '../../lib/i18n';
       '.bm-num b{display:block;font-size:var(--font-size-title);line-height:1.3;font-variant-numeric:tabular-nums}',
       '.bm-num span{display:block;font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       '.bm-groups{display:flex;flex-direction:column;gap:var(--space-sm)}',
-      /* 누르는 칩만 44px 로 벌린다. 줄 안의 의도 칩은 표식이라 킷 크기 그대로. */
-      '.bm-groups .tool-chip{min-height:var(--bm-tap);display:inline-flex;align-items:center}',
+      /* 이 패널의 칩과 버튼은 전부 44px. 필터 줄만 벌려 두니 시트, 선택 띠, 한 장 모드의
+         칩이 폰에서 작았다. 아래 한 줄이 셋을 같이 덮는다. */
+      '.bm .tool-chip{min-height:var(--bm-tap);display:inline-flex;align-items:center}',
       '.bm .btn{min-height:var(--bm-tap)}',
+      /* 줄 안의 의도 칩과 판정 대기 칩은 누르는 것이 아니라 표식. 킷 크기 그대로 */
+      '.bm .bm-meta .tool-chip{min-height:0}',
       /* 검색칸은 킷 기본이 38px 언저리다. 폰에서 누르는 것은 전부 같은 표적 크기로 벌린다. */
       '.bm .field-group input{min-height:var(--bm-tap)}',
       /* 킷 목록의 기본 높이 제한은 목록 안에 또 스크롤을 만든다. 이 패널은 목록이 본문이라
@@ -328,8 +339,12 @@ import { t, loadNamespace } from '../../lib/i18n';
   }
 
   /* ── 이벤트 ────────────────────────────────────────
-     읽을 때는 파일 이름의 epoch 로 먼저 자른다. `foldedThrough` 이전 것은 summary 에 이미
-     들어 있어 다시 받을 이유 없음. 이름으로 못 자른 것만 받아서 `at` 으로 다시 잰다. */
+     **자르는 자는 파일 이름이 아니라 달 폴더다.** 이름 앞머리의 epoch 로 자르면, 이름을 저
+     꼴로 안 지은 파일이나 시계가 어긋난 기기가 낸 파일이 통째로 안 읽힌다. 게다가 nonce 가
+     붙어 이름이 한 꼴이 아니다.
+     이번 달과 지난 달은 무조건 전부 읽고, 그보다 오래된 달만 `foldedThrough` 로 건너뛴다.
+     달이 통째로 접힌 것이 확실할 때만 건너뛰므로 (그 달의 마지막 ms 까지 접혔을 때),
+     생성기가 접다 만 달은 다시 읽힌다. 받은 뒤 `at` 으로 한 번 더 잰다. */
 
   const EV_TYPES: EvType[] = ['tag', 'priority', 'status', 'note'];
 
@@ -338,19 +353,23 @@ import { t, loadNamespace } from '../../lib/i18n';
     return isFinite(n) ? n : 0;
   }
 
-  /** 봉투가 이 화면이 아는 판이고 필수 칸이 찼나. 아니면 조용히 버림 (미아 은닉 아님, 로그로 셈) */
+  /** 기기 이름 꼴. 셸의 `deviceId` 가 6자 hex 를 만든다 */
+  const DEVICE_RE = /^[0-9a-f]{6}$/i;
+
+  /**
+   * 봉투가 이 화면이 아는 판이고 필수 칸이 찼나. 아니면 조용히 버림
+   * (미아 은닉 아님, 로그로 셈). 생성기 `eventProblem` 과 같은 잣대.
+   * `at` 은 글자만으로 부족하다. 못 읽는 날짜는 evAt 이 0 이 되어 어떤 이벤트보다도
+   * 이르게 취급되어 사람이 마지막에 정한 값이 안 이기는 결과로 이어짐.
+   */
   function isEvent(v: unknown): v is DashEvent {
     if (!v || typeof v !== 'object') return false;
     const e = v as Record<string, unknown>;
     if (e.v !== EVENT_V) return false;
-    if (typeof e.at !== 'string' || typeof e.target !== 'string' || !e.target) return false;
+    if (typeof e.at !== 'string' || !isFinite(Date.parse(e.at))) return false;
+    if (typeof e.device !== 'string' || !DEVICE_RE.test(e.device)) return false;
+    if (typeof e.target !== 'string' || !e.target) return false;
     return EV_TYPES.indexOf(e.type as EvType) >= 0;
-  }
-
-  /** 파일 이름 앞머리의 epoch. 못 읽으면 -1 (그때는 안 자르고 받아 본다) */
-  function stampOfName(name: string): number {
-    const m = /^(\d{10,})-/.exec(name);
-    return m ? parseInt(m[1], 10) : -1;
   }
 
   /** 동시 실행 수를 묶어 도는 map. 한 달에 수백 건이 한 번에 나가는 것 방지 */
@@ -366,6 +385,22 @@ import { t, loadNamespace } from '../../lib/i18n';
   function monthKey(ms: number): string {
     const d = new Date(ms);
     return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+  }
+
+  /** 이번 달과 지난 달. 이 둘은 `foldedThrough` 와 무관하게 전부 읽는다 */
+  function recentMonthKeys(now: number): string[] {
+    const d = new Date(now);
+    return [monthKey(now), monthKey(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 1))];
+  }
+
+  /**
+   * `YYYY-MM` 폴더가 담을 수 있는 마지막 ms. 이름이 저 꼴이 아니면 무한대라
+   * 어떤 `foldedThrough` 로도 안 건너뛴다 (모르는 폴더는 읽어 본다).
+   */
+  function monthEndMs(name: string): number {
+    const m = /^(\d{4})-(\d{2})$/.exec(name);
+    if (!m) return Number.POSITIVE_INFINITY;
+    return Date.UTC(parseInt(m[1], 10), parseInt(m[2], 10), 1) - 1;
   }
 
   /* ── 화면 ─────────────────────────────────────────── */
@@ -387,12 +422,39 @@ import { t, loadNamespace } from '../../lib/i18n';
     return true;
   }
 
-  /** 쓰기 권한 없음인가. 403 이면 큐에 안 남기고 사람에게 설정을 고치라고 알림 */
+  /** 셸이 던지는 오류의 갈래. 셸의 `DashError.kind` 와 같은 말 */
+  function errKind(e: unknown): string {
+    const k = e && typeof e === 'object' ? (e as Record<string, unknown>).kind : undefined;
+    return typeof k === 'string' ? k : '';
+  }
+
+  /**
+   * 쓰기 권한 없음인가. 큐에 안 남기고 사람에게 설정을 고치라고 알림.
+   *
+   * **갈래를 먼저 본다.** 셸은 `DashError` 를 던지는데 거기 `status` 가 없고 글월도
+   * 한국어라, 숫자만 재던 옛 판정은 403 을 net 실패로 보고 큐에 쌓았다. 권한이 없는 동안은
+   * 몇 번을 다시 보내도 같은 자리에서 막혀 큐만 늚.
+   * `auth` 도 여기로 옴. 토큰이 죽은 것이라 재전송으로 안 풀림.
+   */
   function isPermError(e: unknown): boolean {
+    const kind = errKind(e);
+    if (kind === 'perm' || kind === 'auth') return true;
     const st = e && typeof e === 'object' ? (e as Record<string, unknown>).status : undefined;
     if (st === 403 || st === 401) return true;
     const msg = e instanceof Error ? e.message : String(e || '');
     return /\b(403|401)\b/.test(msg);
+  }
+
+  /**
+   * 같은 경로가 이미 있나 (GitHub 422). 큐에 넣으면 안 된다. 재전송해도 같은 422 라
+   * 큐에서 안 빠지거나, 빠져도 이벤트가 두 벌이 됨.
+   */
+  function isExistsError(e: unknown): boolean {
+    if (errKind(e) === 'exists') return true;
+    const st = e && typeof e === 'object' ? (e as Record<string, unknown>).status : undefined;
+    if (st === 422) return true;
+    const msg = e instanceof Error ? e.message : String(e || '');
+    return /\b422\b/.test(msg);
   }
 
   async function render(ctx: DashPanelCtx<DashRepoWrite>): Promise<void> {
@@ -527,6 +589,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         if (Array.isArray(ev.intent)) s.intent = ev.intent.filter((x) => typeof x === 'string');
         if (ev.domain !== undefined) s.domain = typeof ev.domain === 'string' ? ev.domain : null;
         s.tagged = true;
+        /* tag 가 오면 unsorted 를 tagged 로 올린다. 생성기 applyEvent 와 같은 규칙 */
         if (s.status === 'unsorted') s.status = 'tagged';
       } else if (ev.type === 'priority') {
         s.priority = typeof ev.priority === 'string' ? ev.priority : null;
@@ -577,18 +640,19 @@ import { t, loadNamespace } from '../../lib/i18n';
       latest.clear();
       const ref = repo.eventsBranch;
       const months = await repo.list(EVENTS_DIR, { ref }).catch(() => []);
-      const dirs = months.filter((e) => e.type === 'dir');
+      const keep = recentMonthKeys(Date.now());
+      const dirs = months.filter(
+        (e) =>
+          e.type === 'dir' &&
+          (keep.indexOf(e.name) >= 0 || foldedThrough < 0 || monthEndMs(e.name) > foldedThrough)
+      );
       /* 달 단위로 병렬. 한 달이 실패해도 나머지는 그린다 (침묵 금지, 아래에서 한 줄로 알림) */
       const perMonth = await Promise.all(
         dirs.map(async (d) => {
           try {
             const files = await repo.list(d.path, { ref });
-            const want = files.filter(
-              (f) =>
-                f.type === 'file' &&
-                /\.json$/i.test(f.name) &&
-                (foldedThrough < 0 || stampOfName(f.name) < 0 || stampOfName(f.name) > foldedThrough)
-            );
+            /* 이름으로는 안 자른다. 자르는 자는 위의 달 폴더뿐 */
+            const want = files.filter((f) => f.type === 'file' && /\.json$/i.test(f.name));
             const read = await mapLimit(want, EVENT_READ_LIMIT, (f) =>
               repo.readJson<unknown>(f.path, { ref }).catch(() => null)
             );
@@ -618,11 +682,19 @@ import { t, loadNamespace } from '../../lib/i18n';
     root.textContent = '';
     root.appendChild(wrap);
 
-    /** 지금 판정 대기인가. tag 를 받았거나 버려졌으면 화면에서 해제 */
+    /**
+     * 지금 판정 대기인가.
+     *
+     * **재는 것은 결과지 이벤트가 아니다.** 전에는 tag 이벤트가 왔나(`tagged`)로 쟀는데,
+     * 그러면 생성기가 이미 의도를 채워 둔 항목이 대기로 남고 (이벤트가 없으니), 반대로
+     * 의도를 비운 tag 이벤트는 대기가 아닌 것이 됐다. 지금은 의도가 하나라도 있으면 해제.
+     * 버린 것과 승격한 것도 다시 물을 이유 없음.
+     */
     function isPending(it: Item): boolean {
       if (!text(it.pending)) return false;
       const s = stateOf(it);
-      return !s.tagged && s.status !== 'dropped';
+      if (s.intent.length) return false;
+      return s.status !== 'dropped' && s.status !== 'promoted';
     }
 
     const groups: Group[] = [];
@@ -823,8 +895,15 @@ import { t, loadNamespace } from '../../lib/i18n';
       return lastStamp;
     }
 
-    /** 보낼 이벤트 한 벌. 경로는 만들 때 정해진다 (파일 이름이 곧 시각과 기기) */
+    /** 보낼 이벤트 한 벌. 경로는 만들 때 정해진다 (파일 이름이 곧 시각과 기기와 탭) */
     type Outgoing = { ev: DashEvent; path: string };
+
+    /** `<epoch-ms>-<device6>-<nonce4>.json`. nonce 는 셸이 탭마다 하나 만든다 */
+    function eventPath(ms: number): string {
+      return (
+        EVENTS_DIR + '/' + monthKey(ms) + '/' + ms + '-' + repo.deviceId + '-' + repo.nonce + '.json'
+      );
+    }
 
     function makeEvent(type: EvType, target: string, fields: Partial<DashEvent>): Outgoing {
       const ms = nextStamp();
@@ -840,29 +919,51 @@ import { t, loadNamespace } from '../../lib/i18n';
       if (fields.priority !== undefined) ev.priority = fields.priority;
       if (fields.status !== undefined) ev.status = fields.status;
       if (fields.note !== undefined) ev.note = fields.note;
-      const path = EVENTS_DIR + '/' + monthKey(ms) + '/' + ms + '-' + repo.deviceId + '.json';
-      return { ev, path };
+      return { ev, path: eventPath(ms) };
     }
 
-    type SendResult = 'sent' | 'queued' | 'denied';
+    /** 같은 이벤트를 새 시각으로 다시. `nextStamp` 가 단조 증가라 경로가 반드시 달라진다 */
+    function restamp(out: Outgoing): Outgoing {
+      const ms = nextStamp();
+      const ev: DashEvent = { ...out.ev, at: new Date(ms).toISOString() };
+      return { ev, path: eventPath(ms) };
+    }
+
+    /** `collided` 는 새 시각으로 다시 보내도 또 이미 있는 것. 사람이 다시 눌러야 한다 */
+    type SendResult = 'sent' | 'queued' | 'denied' | 'collided';
+
+    function applySent(ev: DashEvent): void {
+      noteEvent(ev);
+      rebuildStates(touched(ev.target));
+    }
 
     /**
-     * 이벤트 하나 보내기. 네트워크 실패는 큐로, 권한 없음은 큐에 안 남기고 알림.
+     * 이벤트 하나 보내기. 네트워크 실패는 큐로, 권한 없음과 이미 있음은 큐에 안 남김.
      * 보냈든 큐에 넣었든 화면은 바로 갱신 (낙관적).
+     *
+     * 이미 있음(422)을 큐에 넣으면 안 된다. 재전송해도 같은 422 고, 셸 outbox 는 그것을
+     * 보낸 것으로 치고 버린다. 그래서 이벤트가 조용히 사라진다. nonce 가 붙은 뒤로는
+     * 같은 탭에서 같은 ms 가 두 번 나올 때만 나므로, 새 시각으로 **한 번만** 다시 보냄.
      */
     async function sendEvent(out: Outgoing): Promise<SendResult> {
+      const first = await putOnce(out);
+      if (first !== 'collided') return first;
+      const again = await putOnce(restamp(out));
+      return again;
+    }
+
+    async function putOnce(out: Outgoing): Promise<SendResult> {
       const { ev, path } = out;
       const message = 'dash: ' + ev.type + ' ' + ev.target;
       try {
         await repo.putNewJson(path, ev, message);
-        noteEvent(ev);
-        rebuildStates(touched(ev.target));
+        applySent(ev);
         return 'sent';
       } catch (e) {
         if (isPermError(e)) return 'denied';
+        if (isExistsError(e)) return 'collided';
         repo.enqueueJson(path, ev, message);
-        noteEvent(ev);
-        rebuildStates(touched(ev.target));
+        applySent(ev);
         return 'queued';
       }
     }
@@ -872,11 +973,19 @@ import { t, loadNamespace } from '../../lib/i18n';
       if (r === 'queued') {
         return t('mydash.bm.save.queued', undefined, '네트워크 실패. 큐에 넣었고 다음에 다시 보냅니다');
       }
+      if (r === 'collided') {
+        return t('mydash.bm.save.collided', undefined, '같은 시각 충돌, 다시 저장');
+      }
       return t(
         'mydash.bm.save.denied',
         undefined,
         '쓰기 권한이 없습니다. GitHub App 권한 Contents 를 Read & write 로 바꾸고 설치에서 승인하세요'
       );
+    }
+
+    /** 보내기가 안 끝난 것. 화면이 선택을 안 비우고, 사람에게 말을 남기는 갈래 */
+    function isBad(r: SendResult): boolean {
+      return r === 'denied' || r === 'collided';
     }
 
     /* ── 고르기 ── */
@@ -1368,6 +1477,12 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
     }
 
+    /** 이번 시트에서 승격으로 **새로 바뀌었나**. 이미 promoted 인 것을 다시 저장하는 것은 아님 */
+    function promotingNow(): boolean {
+      if (!draft || !draftBase) return false;
+      return draft.status === 'promoted' && draftBase.status !== 'promoted';
+    }
+
     /** 시트의 초안과 지금 상태를 견줘 낼 이벤트를 만든다. 안 바뀐 축은 안 낸다 */
     function sheetEvents(): Outgoing[] {
       if (!sheet || !draft || !draftBase) return [];
@@ -1382,15 +1497,21 @@ import { t, loadNamespace } from '../../lib/i18n';
       if (draft.status !== draftBase.status) {
         out.push(makeEvent('status', sheet.target, { status: draft.status }));
       }
-      if (draft.note !== draftBase.note) {
+      /* 묶음을 승격할 때는 메모를 **항상** 같이 낸다. 초안의 밑값은 묶음 첫 항목의 메모라,
+         나머지 항목은 메모가 달라도 안 바뀐 것으로 보인다. 그러면 승격한 근거가 묶음 안에서
+         한 건에만 남는다. 대상이 같은 `bundle:<열쇠>` 라 이벤트 하나로 전체에 걸린다. */
+      const noteChanged = draft.note !== draftBase.note;
+      if (noteChanged || (promotingNow() && sheet.bundle)) {
         out.push(makeEvent('note', sheet.target, { note: draft.note }));
       }
       return out;
     }
 
     async function saveSheet(): Promise<void> {
-      if (!sheet || !draft) return;
-      if (draft.status === 'promoted' && !draft.note.trim()) {
+      if (!sheet || !draft || !draftBase) return;
+      /* 승격 관문. 메모가 **이번에 사람이 바꾼 값**이어야 한다. 비어 있지 않은 것만 재면
+         옛 메모가 그대로 통과해, 승격 근거를 적게 하려던 관문이 그냥 열린다. */
+      if (promotingNow() && (!draft.note.trim() || draft.note === draftBase.note)) {
         sheetMsg = t(
           'mydash.bm.promote.need',
           undefined,
@@ -1415,15 +1536,17 @@ import { t, loadNamespace } from '../../lib/i18n';
         paintSheet();
         return;
       }
+      /* 나쁜 것이 이긴다. 권한 없음이 가장 세고, 그 다음이 시각 충돌 */
       let worst: SendResult = 'sent';
       for (const ev of evs) {
         const r = await sendEvent(ev);
         if (r === 'denied') worst = 'denied';
-        else if (r === 'queued' && worst !== 'denied') worst = 'queued';
+        else if (r === 'collided' && worst !== 'denied') worst = 'collided';
+        else if (r === 'queued' && worst === 'sent') worst = 'queued';
       }
       paint();
-      if (worst === 'denied') {
-        sheetMsg = sendWord('denied');
+      if (isBad(worst)) {
+        sheetMsg = sendWord(worst);
         sheetMsgBad = true;
         paintSheet();
         return;
@@ -1467,7 +1590,14 @@ import { t, loadNamespace } from '../../lib/i18n';
         '</div>';
     }
 
-    /** 고른 것마다 이벤트 하나씩 순차로. 실패한 것만 큐로 (그건 sendEvent 안에서) */
+    /**
+     * 고른 것마다 이벤트 하나씩 순차로. 파일 하나에 이벤트 하나 규약은 여기서도 그대로라,
+     * 묶어 보내지 않고 한 건씩 보냄.
+     *
+     * 끝에 셋을 센다. 보냄, 큐, 실패. 전에는 한 줄로 진행만 보이고 끝나면 지웠는데,
+     * 그러면 몇 건이 큐로 갔는지 사람이 알 길이 없었다. 큐나 실패가 있으면 **선택을 안
+     * 비움**. 고른 것이 사라지면 다시 고르는 수밖에 없음.
+     */
     async function runBulk(make: (it: Item) => Outgoing): Promise<void> {
       const ids = Array.from(selected);
       if (!ids.length) {
@@ -1475,25 +1605,38 @@ import { t, loadNamespace } from '../../lib/i18n';
         paintBar();
         return;
       }
+      let sent = 0;
+      let queued = 0;
+      let failed = 0;
+      /* 안 끝난 것 중 가장 나쁜 갈래. 집계 줄 뒤에 이 갈래의 안내를 한 번만 붙인다 */
+      let worst: SendResult = 'sent';
       let done = 0;
       for (const id of ids) {
         const it = itemById.get(id);
-        if (!it) {
-          done++;
-          continue;
-        }
+        if (!it) continue;
+        /* 요청 사이 간격. 한 건씩 순차라 왕복 시간이 여기 더해진다. GitHub 의 쓰기
+           2차 한도에 걸려 통째로 막히는 것보다 조금 느린 편이 낫다 */
+        if (done > 0) await gap();
         const r = await sendEvent(make(it));
         done++;
-        if (r === 'denied') {
-          barBusy = sendWord('denied');
-          paint();
-          return;
-        }
+        if (r === 'sent') sent++;
+        else if (r === 'queued') queued++;
+        else failed++;
+        if (r === 'denied') worst = 'denied';
+        else if (r === 'collided' && worst !== 'denied') worst = 'collided';
+        else if (r === 'queued' && worst === 'sent') worst = 'queued';
         barBusy = t('mydash.bm.sel.progress', { n: done, m: ids.length }, '{n}/{m}');
         paintBar();
+        /* 권한 없음은 다음 건도 같은 자리에서 막힌다. 더 두드리지 않는다 */
+        if (r === 'denied') break;
       }
-      selected.clear();
-      barBusy = '';
+      const tally = t(
+        'mydash.bm.sel.tally',
+        { n: sent, m: queued, k: failed },
+        '보냄 {n}, 큐 {m}, 실패 {k}'
+      );
+      barBusy = worst === 'sent' ? tally : tally + '. ' + sendWord(worst);
+      if (!queued && !failed) selected.clear();
       paint();
     }
 
@@ -1616,8 +1759,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       const picks = Array.from(judge.picks);
       const s = stateOf(it);
       const r = await sendEvent(makeEvent('tag', text(it.id), { intent: picks, domain: s.domain }));
-      if (r === 'denied') {
-        judgeMsg(sendWord('denied'), true);
+      if (isBad(r)) {
+        judgeMsg(sendWord(r), true);
         return;
       }
       judge.lastAuthor = text(it.author);
@@ -1631,8 +1774,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       const it = judge.list[judge.at];
       if (!it) return;
       const r = await sendEvent(makeEvent('status', text(it.id), { status: 'dropped' }));
-      if (r === 'denied') {
-        judgeMsg(sendWord('denied'), true);
+      if (isBad(r)) {
+        judgeMsg(sendWord(r), true);
         return;
       }
       judgeAdvance();
@@ -1741,8 +1884,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         const id = el.getAttribute('data-id') || '';
         void (async () => {
           const r = await sendEvent(makeEvent('priority', id, { priority: 'soon' }));
-          if (r === 'denied') {
-            sheetMsg = sendWord('denied');
+          if (isBad(r)) {
+            sheetMsg = sendWord(r);
             sheetMsgBad = true;
           } else {
             sheetMsg = '';

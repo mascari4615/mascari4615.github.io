@@ -101,13 +101,16 @@ declare const Toolbox:
      경로가 안 겹치게 하는 것이 전부. 사람이나 브라우저를 식별하는 값이 아님.
      저장이 막힌 브라우저에서는 이번 화면 동안만 사는 값. 그래도 경로는 안 겹침 */
   let deviceCache: string | null = null;
-  function makeHex6(): string {
+  /** hex 글자 `bytes * 2` 개. crypto 가 막힌 판에서만 Math.random 후퇴 */
+  function makeHex(bytes: number): string {
     try {
-      const buf = new Uint8Array(3);
+      const buf = new Uint8Array(bytes);
       window.crypto.getRandomValues(buf);
       return Array.from(buf).map((b) => b.toString(16).padStart(2, '0')).join('');
     } catch {
-      return Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
+      let out = '';
+      for (let i = 0; i < bytes; i++) out += Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+      return out;
     }
   }
   function deviceId(): string {
@@ -121,7 +124,7 @@ declare const Toolbox:
     } catch {
       /* 못 읽었다. 새로 만든다 */
     }
-    const made = makeHex6();
+    const made = makeHex(3);
     deviceCache = made;
     try {
       window.localStorage.setItem(DEVICE_KEY, made);
@@ -131,39 +134,73 @@ declare const Toolbox:
     return made;
   }
 
+  /* ── 탭 이름 ───────────────────────────────────────────────────
+     이벤트 파일 이름의 마지막 4자 hex (`<epoch-ms>-<device6>-<nonce4>.json`).
+     기기 이름만으로는 **한 기기의 탭 둘**이 안 갈림. 같은 브라우저의 탭 둘이 같은 밀리초에
+     같은 항목을 건드리면 경로가 통째로 겹쳐, 뒤에 간 것이 422 로 막히고 outbox 가 그것을
+     이미 간 것으로 보고 버림. 그 한 자리를 이 4자가 막음.
+     저장 안 함. 탭 수명 동안만 고정이면 되고, 새로고침하면 새 값이어도 맞음 */
+  let nonceCache: string | null = null;
+  function tabNonce(): string {
+    if (!nonceCache) nonceCache = makeHex(2);
+    return nonceCache;
+  }
+
   /* ── outbox ────────────────────────────────────────────────────
      못 보낸 쓰기 줄. 여기 남은 것은 **아직 GitHub 에 안 간 것**뿐이라, 다음 로드나 online 에
-     그대로 다시 보냄. 이벤트가 append 전용이고 경로가 시각과 기기로 정해져 있어 두 번 보내도
-     같은 경로라, 먼저 간 것이 있으면 GitHub 이 422 로 막음. 그래서 재전송이 안전 */
-  type OutboxItem = { path: string; value: unknown; message: string; at: string };
-  let outboxCache: OutboxItem[] | null = null;
+     그대로 다시 보냄. 이벤트가 append 전용이고 경로가 시각과 기기와 탭으로 정해져 있어 두 번
+     보내도 같은 경로라, 먼저 간 것이 있으면 GitHub 이 422 로 막음. 그래서 재전송이 안전
 
-  function readOutbox(): OutboxItem[] {
-    if (outboxCache) return outboxCache;
-    let list: OutboxItem[] = [];
+     ★ **메모리 캐시를 두지 않는다.** localStorage 는 이 탭만의 것이 아니라 같은 출처의
+     **모든 탭이 같이 쓰는 자리**다. 한 번 읽어 들고 있으면, 다른 탭이 그 사이에 넣은 줄이
+     이 탭의 옛 벌에 밀려 통째로 사라진다 (두 탭을 열어 두면 뒤에 저장한 탭이 이긴다).
+     그래서 읽기도 쓰기도 **매번 localStorage 를 다시 읽고**, 쓰기는 지금 있는 줄 위에 얹는다.
+     'storage' 이벤트는 안 듣는다. 매번 다시 읽으면 알 이유가 없고, 이 창이 만든 변경은
+     어차피 그 이벤트가 안 온다 */
+  type OutboxItem = { path: string; value: unknown; message: string; at: string };
+  /**
+   * 저장이 아예 막힌 판(사파리 비공개, 저장소 꽉 참, 서드파티 차단)의 후퇴 자리.
+   * null 이면 localStorage 가 정본. 한 번이라도 던지면 이 자리가 정본이 되고, 그때부터
+   * 이번 화면 동안만 삶. 그런 판에는 다른 탭과 나눠 쓸 자리 자체가 없어 덮어쓰기도 없음.
+   */
+  let outboxFallback: OutboxItem[] | null = null;
+
+  function parseOutbox(raw: string | null): OutboxItem[] {
     try {
-      const raw = window.localStorage.getItem(OUTBOX_KEY);
       const arr = raw ? (JSON.parse(raw) as unknown) : [];
-      if (Array.isArray(arr)) {
-        list = arr.filter(
-          (x): x is OutboxItem =>
-            !!x && typeof (x as OutboxItem).path === 'string' && typeof (x as OutboxItem).message === 'string'
-        );
-      }
+      if (!Array.isArray(arr)) return [];
+      return arr.filter(
+        (x): x is OutboxItem =>
+          !!x && typeof (x as OutboxItem).path === 'string' && typeof (x as OutboxItem).message === 'string'
+      );
     } catch {
-      /* 못 읽었다. 빈 줄로 시작 */
+      /* 남이 쓴 글자이거나 반쯤 적히다 만 것. 빈 줄로 친다 */
+      return [];
     }
-    outboxCache = list;
-    return list;
+  }
+
+  /** 부를 때마다 localStorage 를 다시 읽음. 반환은 **부르는 쪽 것**이라 마음대로 손대도 됨 */
+  function readOutbox(): OutboxItem[] {
+    if (outboxFallback) return outboxFallback.slice();
+    try {
+      return parseOutbox(window.localStorage.getItem(OUTBOX_KEY));
+    } catch {
+      outboxFallback = [];
+      return [];
+    }
   }
 
   function saveOutbox(list: OutboxItem[]): void {
-    outboxCache = list;
+    if (outboxFallback) {
+      outboxFallback = list.slice();
+      return;
+    }
     try {
       if (list.length) window.localStorage.setItem(OUTBOX_KEY, JSON.stringify(list));
       else window.localStorage.removeItem(OUTBOX_KEY);
     } catch {
-      /* 못 적었다. 이번 화면 동안은 memory 로 산다 */
+      /* 못 적었다. 여기서부터 이번 화면 동안은 메모리가 정본 */
+      outboxFallback = list.slice();
     }
   }
 
@@ -413,12 +450,23 @@ declare const Toolbox:
   function makeRepo(cfg: Config): DashRepoWrite {
     const eventsBranch = cfg.eventsBranch || DEFAULT_EVENTS_BRANCH;
 
-    async function call(path: string, accept: string, ref?: string): Promise<Response> {
+    /** contents 주소 하나. `extra` 는 `&per_page=100` 처럼 이미 encode 된 덧붙임 */
+    function contentsUrl(path: string, ref?: string, extra?: string): string {
+      return (
+        API + '/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + encPath(path) +
+        '?ref=' + encodeURIComponent(ref || cfg.branch || 'main') + (extra || '')
+      );
+    }
+
+    /**
+     * 절대 주소 하나를 GitHub 에서 받아 옴. 상태 갈래는 여기 한 곳.
+     * `label` 은 실패 문구에 넣을 이름 (보통 경로). 주소를 그대로 보이면 토큰 자리까지 길어짐.
+     *
+     * 주소를 통째로 받는 이유는 목록의 다음 장. Link 머리표가 준 주소를 그대로 다시 부름.
+     */
+    async function callUrl(url: string, accept: string, label: string): Promise<Response> {
       const token = await liveToken(cfg);
       if (!token) throw new DashError('auth', '로그인이 필요하다');
-      const url =
-        API + '/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + encPath(path) +
-        '?ref=' + encodeURIComponent(ref || cfg.branch || 'main');
       let res: Response;
       try {
         res = await fetch(url, {
@@ -435,7 +483,7 @@ declare const Toolbox:
       if (res.status === 404) {
         /* ★ **여기가 인가.** 권한이 없는 토큰도, 파일이 없는 경우도 똑같이 404.
            GitHub 이 일부러 안 가른다(있는지조차 안 알려 준다). 우리도 안 가른다. */
-        throw new DashError('notfound', path + ' 를 못 읽는다 (없거나, 이 계정에 권한이 없다)');
+        throw new DashError('notfound', label + ' 를 못 읽는다 (없거나, 이 계정에 권한이 없다)');
       }
       if (res.status === 403 || res.status === 429) {
         /* 403 은 로그인이 풀린 것과 무관. 요청 한도가 대부분이고, 토큰은 정상.
@@ -451,6 +499,25 @@ declare const Toolbox:
       }
       if (!res.ok) throw new DashError('net', 'GitHub 이 ' + res.status + ' 를 줬다');
       return res;
+    }
+
+    function call(path: string, accept: string, ref?: string): Promise<Response> {
+      return callUrl(contentsUrl(path, ref), accept, path);
+    }
+
+    /**
+     * Link 머리표의 다음 장 주소. 없으면 null.
+     *
+     * GitHub 이 준 주소지만 그대로 믿지 않는다. 이 주소에는 **토큰이 실려 나간다.**
+     * `api.github.com` 으로 시작하는 것만 받음.
+     */
+    function nextPageUrl(header: string | null): string | null {
+      if (!header) return null;
+      for (const part of header.split(',')) {
+        const m = /<([^>]+)>\s*;\s*rel\s*=\s*"?next"?/i.exec(part);
+        if (m && m[1].indexOf(API + '/') === 0) return m[1];
+      }
+      return null;
     }
 
     async function readText(path: string, opts?: DashReadOpts): Promise<string> {
@@ -501,8 +568,9 @@ declare const Toolbox:
       if (!res.ok) throw new DashError('net', 'GitHub 이 ' + res.status + ' 를 줬다');
     }
 
+    /* 지금 저장소에 있는 줄 위에 얹는다. 들고 있던 벌에 얹으면 다른 탭이 그 사이에 넣은 것이 날아감 */
     function enqueueJson(path: string, value: unknown, message: string): void {
-      const list = readOutbox().slice();
+      const list = readOutbox();
       list.push({ path, value, message, at: new Date().toISOString() });
       saveOutbox(list);
     }
@@ -558,30 +626,57 @@ declare const Toolbox:
           throw new DashError('net', path + ' 가 JSON 이 아니다');
         }
       },
-      /* 없는 폴더는 빈 배열. 이벤트는 달마다 폴더가 생기므로, 이번 달 폴더가 아직 없는 것이
-         정상인 상태. 그것까지 실패로 던지면 패널이 첫 화면에서 오류 카드를 봄 */
+      /**
+       * 폴더 하나를 **끝까지**. 없는 폴더는 빈 배열. 이벤트는 달마다 폴더가 생기므로,
+       * 이번 달 폴더가 아직 없는 것이 정상인 상태. 그것까지 실패로 던지면 패널이 첫 화면에서
+       * 오류 카드를 봄.
+       *
+       * ★ **한 장으로 안 끝난다.** contents API 는 장을 나눠 준다. 안 나누고 한 번만 부르면
+       * 앞에서 최대 1,000 개까지만 오고 나머지는 **조용히 빠진다** (실패가 아니라 짧은 목록이
+       * 온다. 패널은 그것이 전부인 줄 안다). 한 달에 이벤트가 1,000 건을 넘으면 그 달의 판정이
+       * 통째로 사라지는 자리. `per_page=100` 을 걸고 Link 머리표의 next 를 끝까지 따라감.
+       *
+       * 배열이 아니면 빈 배열. 폴더가 아니라 파일 하나를 가리키면 객체가 온다. 목록을 물었는데
+       * 목록이 아닌 것은 없는 것과 같이 친다 (없는 달과 같은 자리라 던지면 또 오류 카드).
+       */
       async list(path: string, opts?: DashReadOpts): Promise<DashEntry[]> {
-        let res: Response;
-        try {
-          res = await call(path, 'application/vnd.github+json', opts?.ref);
-        } catch (e) {
-          if ((e as DashError).kind === 'notfound') return [];
-          throw e;
+        const out: DashEntry[] = [];
+        let url: string | null = contentsUrl(path, opts?.ref, '&per_page=100');
+        /* 서버가 자기 자신을 next 로 주는 판에서 영원히 도는 것 방지. 100장이면 1만 개 */
+        for (let page = 0; url && page < 100; page++) {
+          let res: Response;
+          try {
+            res = await callUrl(url, 'application/vnd.github+json', path);
+          } catch (e) {
+            if ((e as DashError).kind === 'notfound') return page === 0 ? [] : out;
+            throw e;
+          }
+          let raw: unknown;
+          try {
+            raw = await res.json();
+          } catch {
+            throw new DashError('net', path + ' 목록이 JSON 이 아니다');
+          }
+          if (!Array.isArray(raw)) return page === 0 ? [] : out;
+          for (const e of raw as Array<{ name: string; path: string; type: string; size?: number }>) {
+            out.push({
+              name: e.name,
+              path: e.path,
+              type: e.type === 'dir' ? 'dir' : 'file',
+              size: e.size || 0,
+            });
+          }
+          url = nextPageUrl(res.headers.get('link'));
         }
-        const raw = (await res.json()) as Array<{ name: string; path: string; type: string; size?: number }>;
-        if (!Array.isArray(raw)) throw new DashError('notfound', path + ' 는 폴더가 아니다');
-        return raw.map((e) => ({
-          name: e.name,
-          path: e.path,
-          type: e.type === 'dir' ? 'dir' : 'file',
-          size: e.size || 0,
-        }));
+        return out;
       },
       putNewJson,
       enqueueJson,
       flushOutbox,
       eventsBranch,
       deviceId: deviceId(),
+      /* 파일 이름은 패널이 만든다. 셸은 안 겹치는 조각만 준다 (기기 6자 + 탭 4자) */
+      nonce: tabNonce(),
     };
   }
 

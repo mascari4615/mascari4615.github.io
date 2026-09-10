@@ -47,14 +47,41 @@ export interface DashEntry {
  * 쓰기는 브랜치가 읽기와 다름. 읽기는 `branch`, 쓰기는 `eventsBranch` 고정. 패널이 고를 것 없음.
  */
 export interface DashRepoWrite extends DashRepoRead {
-  /** 새 파일 생성만 (append 전용). 이미 있으면 던진다. branch 는 config.eventsBranch. 메시지는 "dash: " 접두 */
+  /**
+   * 새 파일 생성만 (append 전용). 이미 있으면 던짐. branch 는 config.eventsBranch. 메시지는 "dash: " 접두
+   *
+   * **실패 계약.** 셸이 던지는 값에는 `kind` 가 붙음. 패널이 읽는 것은
+   * `(e as {kind?: string}).kind` 하나. 클래스 이름이나 `message` 글자에 기대지 말 것
+   * (셸 묶음과 패널 묶음이 서로 import 를 못 해 `instanceof` 가 안 통함).
+   *
+   * | kind | 뜻 | 패널의 몫 |
+   * | --- | --- | --- |
+   * | `auth` | 토큰 없음이나 만료 | 그대로 다시 던지기. 셸이 로그인 화면으로 |
+   * | `perm` | 토큰은 살아 있고 쓰기 권한만 없음 | `enqueueJson` 으로 남기기. 재로그인은 무의미 |
+   * | `exists` | 같은 경로가 이미 있음 (422) | 실패가 아니라 이미 간 것. 성공으로 치기 |
+   * | `ratelimit` | 요청 한도 | 잠시 뒤 다시. 토큰은 그대로 |
+   * | `notfound` | 경로 없음이나 그 경로에 권한 없음 | 읽기에서만 남. 쓰기는 `perm` 으로 옴 |
+   * | `config` | 설정 파일 문제 | 그대로 다시 던지기 |
+   * | `net` | 못 닿음, 5xx, 그 밖 전부 | 잠시 뒤 다시 |
+   *
+   * `kind` 가 없거나 이 목록 밖이면 `net` 으로 취급. 셸의 오류 카드도 같은 규칙.
+   */
   putNewJson(path: string, value: unknown, message: string): Promise<void>;
-  /** 실패한 쓰기를 outbox 에 넣고 나중에 다시 보낸다. 반환은 즉시 */
+  /** 실패한 쓰기를 outbox 에 넣고 나중에 다시 보냄. 반환은 즉시 */
   enqueueJson(path: string, value: unknown, message: string): void;
-  /** outbox 를 지금 비운다. 보낸 수와 남은 수 */
+  /** outbox 를 지금 비움. 보낸 수와 남은 수 */
   flushOutbox(): Promise<{ sent: number; left: number }>;
   eventsBranch: string;
+  /** 기기마다 하나인 6자 hex. localStorage 에 남음 */
   deviceId: string;
+  /**
+   * **탭마다 다른 4자 hex.** 이벤트 파일 이름의 마지막 조각
+   * (`<epoch-ms>-<device6>-<nonce4>.json`).
+   *
+   * 같은 기기에서 탭 둘이 같은 밀리초에 같은 항목을 건드려도 경로가 안 겹치게 하는 것이 전부.
+   * 탭 수명 동안 고정이고 저장 안 함. 새로고침하면 새 값. 사람이나 브라우저를 식별하는 값 아님.
+   */
+  nonce: string;
 }
 
 /** 그릴 때 셸이 건네는 것. 패널은 이것 말고 바깥을 안 본다. */
