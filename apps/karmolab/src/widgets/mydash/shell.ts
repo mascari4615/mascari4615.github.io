@@ -1,5 +1,5 @@
 /**
- * 개인 대시보드 셸 (1단계).
+ * 개인 대시보드 셸.
  *
  * 무엇인가: **공개 배포된 정적 화면 하나**가, 보는 사람의 GitHub 토큰으로 **private 저장소를
  * 직접** 읽어 그린다. 이 사이트의 서버는 그 데이터를 0바이트도 안 만진다. 브라우저가
@@ -20,9 +20,13 @@
  *
  * 설정은 코드에 안 박는다. `data/mydash-config.json` 을 읽는다 (예시는 같은 폴더의
  * `mydash-config.example.json`). 없으면 화면이 무엇을 채워야 하는지 적어 줌.
+ *
+ * ★ **쓰기는 읽기와 브랜치가 다르다.** 읽기는 `branch` (생성기가 굽는 main), 쓰기는
+ * `eventsBranch` (orphan 브랜치 하나). 사람 손 기록만 거기 쌓이고 main 은 안 건드림.
+ * 쓰기 모양은 새 파일 생성 하나뿐이라 sha 도 덮어쓰기도 없음.
  */
 import { dashRegistry, esc, httpsUrl } from './kit';
-import type { DashEntry, DashPanel, DashRepoRead } from './kit';
+import type { DashEntry, DashPanel, DashPanelCtx, DashReadOpts, DashRepoWrite } from './kit';
 
 declare const Toolbox:
   | {
@@ -41,6 +45,8 @@ declare const Toolbox:
     owner: string;
     repo: string;
     branch?: string;
+    /** 사람 손 기록이 쌓이는 orphan 브랜치. 없으면 `karmolab-dashboard` */
+    eventsBranch?: string;
   };
 
   type Saved = {
@@ -53,7 +59,12 @@ declare const Toolbox:
 
   const API = 'https://api.github.com';
   const STORE_KEY = 'karmolab.mydash.gh';
+  const OUTBOX_KEY = 'karmolab.mydash.outbox';
+  const DEVICE_KEY = 'karmolab.mydash.device';
   const CONFIG_URL = '/apps/karmolab/data/mydash-config.json';
+  const DEFAULT_EVENTS_BRANCH = 'karmolab-dashboard';
+  /* 쓰기가 403, 404 로 막혔을 때 사람이 손볼 곳. 토큰을 다시 받아도 안 풀림 */
+  const PERM_MSG = 'GitHub App 권한 Contents 를 Read & write 로 바꾸고 설치 화면에서 승인';
 
   const reg = dashRegistry();
 
@@ -82,6 +93,77 @@ declare const Toolbox:
       else window.localStorage.removeItem(STORE_KEY);
     } catch {
       /* 못 적었다. 이번 화면 동안은 memoryToken 으로 산다. 새로고침하면 다시 로그인이다. */
+    }
+  }
+
+  /* ── 기기 이름 ─────────────────────────────────────────────────
+     이벤트 파일 이름 뒤에 붙는 6자 hex. 폰과 데스크톱이 같은 밀리초에 같은 항목을 건드려도
+     경로가 안 겹치게 하는 것이 전부. 사람이나 브라우저를 식별하는 값이 아님.
+     저장이 막힌 브라우저에서는 이번 화면 동안만 사는 값. 그래도 경로는 안 겹침 */
+  let deviceCache: string | null = null;
+  function makeHex6(): string {
+    try {
+      const buf = new Uint8Array(3);
+      window.crypto.getRandomValues(buf);
+      return Array.from(buf).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+      return Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
+    }
+  }
+  function deviceId(): string {
+    if (deviceCache) return deviceCache;
+    try {
+      const got = window.localStorage.getItem(DEVICE_KEY);
+      if (got && /^[0-9a-f]{6}$/.test(got)) {
+        deviceCache = got;
+        return got;
+      }
+    } catch {
+      /* 못 읽었다. 새로 만든다 */
+    }
+    const made = makeHex6();
+    deviceCache = made;
+    try {
+      window.localStorage.setItem(DEVICE_KEY, made);
+    } catch {
+      /* 못 적었다. 이번 화면 동안만 이 이름 */
+    }
+    return made;
+  }
+
+  /* ── outbox ────────────────────────────────────────────────────
+     못 보낸 쓰기 줄. 여기 남은 것은 **아직 GitHub 에 안 간 것**뿐이라, 다음 로드나 online 에
+     그대로 다시 보냄. 이벤트가 append 전용이고 경로가 시각과 기기로 정해져 있어 두 번 보내도
+     같은 경로라, 먼저 간 것이 있으면 GitHub 이 422 로 막음. 그래서 재전송이 안전 */
+  type OutboxItem = { path: string; value: unknown; message: string; at: string };
+  let outboxCache: OutboxItem[] | null = null;
+
+  function readOutbox(): OutboxItem[] {
+    if (outboxCache) return outboxCache;
+    let list: OutboxItem[] = [];
+    try {
+      const raw = window.localStorage.getItem(OUTBOX_KEY);
+      const arr = raw ? (JSON.parse(raw) as unknown) : [];
+      if (Array.isArray(arr)) {
+        list = arr.filter(
+          (x): x is OutboxItem =>
+            !!x && typeof (x as OutboxItem).path === 'string' && typeof (x as OutboxItem).message === 'string'
+        );
+      }
+    } catch {
+      /* 못 읽었다. 빈 줄로 시작 */
+    }
+    outboxCache = list;
+    return list;
+  }
+
+  function saveOutbox(list: OutboxItem[]): void {
+    outboxCache = list;
+    try {
+      if (list.length) window.localStorage.setItem(OUTBOX_KEY, JSON.stringify(list));
+      else window.localStorage.removeItem(OUTBOX_KEY);
+    } catch {
+      /* 못 적었다. 이번 화면 동안은 memory 로 산다 */
     }
   }
 
@@ -131,7 +213,11 @@ declare const Toolbox:
   /* ── 실패의 종류 구분. 화면이 다르게 말해야 하는 것만 구분.
      ratelimit 은 auth 와 별도 갈래. 요청 한도에 걸린 사람에게 로그인이 풀렸다고 말하면
      멀쩡한 토큰을 버리고 재로그인하는 문제 방지. */
-  type FailKind = 'auth' | 'ratelimit' | 'notfound' | 'config' | 'net';
+  /* perm 은 auth 와 다름. 토큰은 멀쩡한데 그 토큰에 쓰기 권한이 없는 것이라, 지우고 다시
+     로그인해도 같은 자리에서 또 막힘. 사람이 GitHub App 설치 화면을 손봐야 풀림.
+     exists 는 실패가 아니라 **이미 간 것**. 같은 경로를 두 번 보내면 GitHub 이 422 로 막고,
+     outbox 는 그것을 성공으로 보고 버림 (재전송으로 이벤트가 두 벌 생기지 않게). */
+  type FailKind = 'auth' | 'perm' | 'exists' | 'ratelimit' | 'notfound' | 'config' | 'net';
   class DashError extends Error {
     kind: FailKind;
     /** 429 를 준 쪽이 알려 준 대기 초. 없으면 부르는 쪽이 알아서 정함. */
@@ -161,7 +247,13 @@ declare const Toolbox:
       throw new DashError('config', '설정 파일이 JSON 이 아니다');
     }
     if (!v.relay || !v.owner || !v.repo) throw new DashError('config', '설정에 relay, owner, repo 가 있어야 한다');
-    configCache = { relay: String(v.relay).replace(/\/+$/, ''), owner: v.owner, repo: v.repo, branch: v.branch || 'main' };
+    configCache = {
+      relay: String(v.relay).replace(/\/+$/, ''),
+      owner: v.owner,
+      repo: v.repo,
+      branch: v.branch || 'main',
+      eventsBranch: v.eventsBranch || DEFAULT_EVENTS_BRANCH,
+    };
     return configCache;
   }
 
@@ -300,15 +392,33 @@ declare const Toolbox:
     throw new DashError('net', '토큰 갱신에 못 닿았다. 잠시 뒤 다시');
   }
 
-  /* ── 저장소 읽기 ───────────────────────────────────────────────── */
-  function makeRepo(cfg: Config): DashRepoRead {
-    async function call(path: string, accept: string): Promise<Response> {
+  /* ── 저장소 읽기와 쓰기 ─────────────────────────────────────────── */
+
+  /** 경로 조각마다 encode. 빗금은 그대로 둬야 GitHub 이 폴더로 읽는다 */
+  function encPath(path: string): string {
+    return path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  /** utf-8 을 base64 로. GitHub contents API 는 base64 만 받는다. 이벤트 파일은 작다 */
+  function toBase64(text: string): string {
+    const bytes = new TextEncoder().encode(text);
+    let raw = '';
+    for (const b of bytes) raw += String.fromCharCode(b);
+    return window.btoa(raw);
+  }
+
+  /* 한 번에 하나만. 로그인 직후와 online 이 겹치면 같은 줄을 두 번 보냄 */
+  let flushing: Promise<{ sent: number; left: number }> | null = null;
+
+  function makeRepo(cfg: Config): DashRepoWrite {
+    const eventsBranch = cfg.eventsBranch || DEFAULT_EVENTS_BRANCH;
+
+    async function call(path: string, accept: string, ref?: string): Promise<Response> {
       const token = await liveToken(cfg);
       if (!token) throw new DashError('auth', '로그인이 필요하다');
       const url =
-        API + '/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' +
-        path.split('/').map(encodeURIComponent).join('/') +
-        '?ref=' + encodeURIComponent(cfg.branch || 'main');
+        API + '/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + encPath(path) +
+        '?ref=' + encodeURIComponent(ref || cfg.branch || 'main');
       let res: Response;
       try {
         res = await fetch(url, {
@@ -343,23 +453,121 @@ declare const Toolbox:
       return res;
     }
 
-    async function readText(path: string): Promise<string> {
-      const res = await call(path, 'application/vnd.github.raw');
+    async function readText(path: string, opts?: DashReadOpts): Promise<string> {
+      const res = await call(path, 'application/vnd.github.raw', opts?.ref);
       return res.text();
+    }
+
+    /**
+     * 새 파일 하나. **덮어쓰기 없음.** sha 를 안 보내므로 같은 경로가 이미 있으면 422.
+     *
+     * 실패 갈래를 여기서 갈라 둔다. 읽기의 404 는 "없거나 권한 없음" 이지만, 쓰기의 404 와 403 은
+     * 같은 하나다. 이 저장소가 보이는 토큰으로 쓰기만 막힌 것 (App 권한이 Read-only).
+     * 그래서 auth 로 안 던진다. 토큰을 지우고 다시 로그인해도 같은 자리에서 또 막히고,
+     * 사람은 왜 로그인이 자꾸 풀리나만 보게 됨
+     */
+    async function putNewJson(path: string, value: unknown, message: string): Promise<void> {
+      const token = await liveToken(cfg);
+      if (!token) throw new DashError('auth', '로그인이 필요하다');
+      const body = JSON.stringify({
+        /* 접두는 셸이 지킨다. 이벤트 브랜치 로그에서 화면이 만든 커밋을 한눈에 고르게 */
+        message: message.indexOf('dash: ') === 0 ? message : 'dash: ' + message,
+        content: toBase64(JSON.stringify(value, null, 2) + '\n'),
+        branch: eventsBranch,
+      });
+      let res: Response;
+      try {
+        res = await fetch(API + '/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + encPath(path), {
+          method: 'PUT',
+          headers: {
+            authorization: 'Bearer ' + token,
+            accept: 'application/vnd.github+json',
+            'content-type': 'application/json',
+            'x-github-api-version': '2022-11-28',
+          },
+          body,
+        });
+      } catch {
+        throw new DashError('net', 'GitHub 에 못 닿았다');
+      }
+      if (res.status === 401) {
+        saveToken(null);
+        throw new DashError('auth', '토큰이 만료됐다');
+      }
+      if (res.status === 403 || res.status === 404) throw new DashError('perm', PERM_MSG);
+      /* 이미 있는 경로. 409 는 브랜치가 그 사이에 움직인 것이라 다시 보내면 됨 */
+      if (res.status === 422) throw new DashError('exists', path + ' 는 이미 있다');
+      if (res.status === 429) throw new DashError('ratelimit', 'GitHub 요청 한도. 잠시 뒤 다시');
+      if (!res.ok) throw new DashError('net', 'GitHub 이 ' + res.status + ' 를 줬다');
+    }
+
+    function enqueueJson(path: string, value: unknown, message: string): void {
+      const list = readOutbox().slice();
+      list.push({ path, value, message, at: new Date().toISOString() });
+      saveOutbox(list);
+    }
+
+    /**
+     * 앞에서부터 하나씩. **순서를 지킨다.** 같은 항목에 대한 두 이벤트가 뒤집혀 가면
+     * 늦은 것이 이기는 규칙이 뒤집힌 순서로 적용됨.
+     *
+     * - exists: 먼저 간 것. 버리고 다음
+     * - 그 밖: 멈추고 남김. 권한이든 네트워크든 다음 것도 같은 자리에서 막힘
+     */
+    async function flushOnce(): Promise<{ sent: number; left: number }> {
+      let sent = 0;
+      for (;;) {
+        /* 보내는 사이에 사람이 또 태그를 달 수 있음. 그래서 매번 지금 줄을 다시 읽고,
+           지울 때도 방금 보낸 경로 하나만 뺌. 통째로 덮으면 그 사이 들어온 것이 사라짐 */
+        const list = readOutbox();
+        if (!list.length) return { sent, left: 0 };
+        const head = list[0];
+        try {
+          await putNewJson(head.path, head.value, head.message);
+          sent++;
+        } catch (e) {
+          if ((e as DashError).kind !== 'exists') return { sent, left: readOutbox().length };
+        }
+        saveOutbox(readOutbox().filter((x) => x.path !== head.path));
+      }
+    }
+
+    function flushOutbox(): Promise<{ sent: number; left: number }> {
+      if (flushing) return flushing;
+      const p = flushOnce().then(
+        (out) => {
+          if (flushing === p) flushing = null;
+          return out;
+        },
+        (e) => {
+          if (flushing === p) flushing = null;
+          throw e;
+        }
+      );
+      flushing = p;
+      return p;
     }
 
     return {
       readText,
-      async readJson<T>(path: string): Promise<T> {
-        const text = await readText(path);
+      async readJson<T>(path: string, opts?: DashReadOpts): Promise<T> {
+        const text = await readText(path, opts);
         try {
           return JSON.parse(text) as T;
         } catch {
           throw new DashError('net', path + ' 가 JSON 이 아니다');
         }
       },
-      async list(path: string): Promise<DashEntry[]> {
-        const res = await call(path, 'application/vnd.github+json');
+      /* 없는 폴더는 빈 배열. 이벤트는 달마다 폴더가 생기므로, 이번 달 폴더가 아직 없는 것이
+         정상인 상태. 그것까지 실패로 던지면 패널이 첫 화면에서 오류 카드를 봄 */
+      async list(path: string, opts?: DashReadOpts): Promise<DashEntry[]> {
+        let res: Response;
+        try {
+          res = await call(path, 'application/vnd.github+json', opts?.ref);
+        } catch (e) {
+          if ((e as DashError).kind === 'notfound') return [];
+          throw e;
+        }
         const raw = (await res.json()) as Array<{ name: string; path: string; type: string; size?: number }>;
         if (!Array.isArray(raw)) throw new DashError('notfound', path + ' 는 폴더가 아니다');
         return raw.map((e) => ({
@@ -369,6 +577,11 @@ declare const Toolbox:
           size: e.size || 0,
         }));
       },
+      putNewJson,
+      enqueueJson,
+      flushOutbox,
+      eventsBranch,
+      deviceId: deviceId(),
     };
   }
 
@@ -437,6 +650,8 @@ declare const Toolbox:
        그래서 패널을 열 때마다 새 div 를 만들어 붙이고 그 div 만 건넴. 갈아 끼울 때 이전 div 는
        DOM 에서 떼므로, 늦게 온 render 는 떨어진 div 에 그리기. 화면에는 아무 일 없음. */
     let panelBox: HTMLElement | null = null;
+    /** online 이벤트 떼는 손. 대시보드 한 판에 하나 */
+    let stopOnline: (() => void) | null = null;
     /* 머리말 한 줄(statEl)과 실패 보고는 화면에 하나뿐이라 칸으로 못 가름. 세대 번호로 가름.
        지금 세대가 아닌 패널이 부르면 무시. */
     let panelGen = 0;
@@ -458,7 +673,10 @@ declare const Toolbox:
     /* 맨바깥 이름 `Toolbox` 우선 확인, 없는 자리(가짜 셸로 재는 테스트)에서만 window 로 확인.
        셸은 `const Toolbox` 로 생성하고 const 는 window 에 안 붙음. window 만 보면 실서비스에서
        등록이 통째로 헛돌아 기기 흐름 폴링이 위젯 이탈 뒤에도 안 멈추는 문제 (memo-atlas 와 동일 패턴). */
-    toolbox()?.onDispose?.(disposePanel);
+    toolbox()?.onDispose?.(() => {
+      disposePanel();
+      stopOnline?.();
+    });
 
     function say(html: string): void {
       disposePanel();
@@ -611,8 +829,38 @@ declare const Toolbox:
       window.setTimeout(() => void tick(), wait);
     }
 
+    /**
+     * 밀린 쓰기를 지금 보낸다. 화면에는 **보낸 것이 있을 때만** 한 줄.
+     * 0 건이면 아무 말도 안 함. 아무 일 없는 화면에 매번 줄이 붙으면 사람이 안 읽게 됨.
+     */
+    async function flushAndSay(repo: DashRepoWrite): Promise<void> {
+      let out: { sent: number; left: number };
+      try {
+        out = await repo.flushOutbox();
+      } catch {
+        /* 여기서 죽어도 화면은 그대로. 남은 것은 outbox 에 있고 다음 기회에 다시 */
+        return;
+      }
+      if (out.sent > 0) {
+        statEl.textContent = '밀린 기록 ' + out.sent + '건 보냄' + (out.left ? ', ' + out.left + '건 남음' : '');
+      }
+    }
+
+    /* 오프라인에서 쌓인 것을 그물이 돌아온 순간에 보냄. 대시보드 한 판에 하나만 걺 */
+    function watchOnline(repo: DashRepoWrite): void {
+      if (stopOnline) return;
+      const onOnline = (): void => void flushAndSay(repo);
+      window.addEventListener('online', onOnline);
+      stopOnline = (): void => {
+        window.removeEventListener('online', onOnline);
+        stopOnline = null;
+      };
+    }
+
     function logout(cfg: Config): void {
       saveToken(null);
+      /* 토큰이 없으면 보낼 수도 없음. 남은 outbox 는 안 지움. 다시 로그인하면 그때 감 */
+      stopOnline?.();
       reopenPanel = null;
       navEl.hidden = true;
       navEl.textContent = '';
@@ -626,6 +874,9 @@ declare const Toolbox:
     /* ── 로그인 뒤. 패널 명부를 그대로 칩으로 만든다. */
     async function showDashboard(cfg: Config): Promise<void> {
       const repo = makeRepo(cfg);
+      /* 로그인 뒤 한 번. 지난 화면에서 그물이 끊겨 못 보낸 것이 남아 있을 수 있음 */
+      void flushAndSay(repo);
+      watchOnline(repo);
       whoEl.innerHTML =
         '<span>' + esc(cfg.owner + '/' + cfg.repo) + '</span>' +
         /* 여기만 44px 아래로 내리면 폰에서 못 누른다. 좁게 보이려고 padding 만 줄인다. */
@@ -650,17 +901,6 @@ declare const Toolbox:
         disposePanel();
         bodyEl.textContent = '';
 
-        /* ★ **쓰기 패널은 아직 안 그린다** (1단계는 읽기 전용).
-           읽기 저장소를 쓰기 패널에 건네면 그 패널은 자기가 쓸 수 있다고 믿고 짜인다.
-           타입으로 갈라 뒀으니 여기서 한 번 더 막는다. 자리는 있고 구현이 없다. */
-        if (panel.access !== 'read') {
-          bodyEl.innerHTML =
-            '<div class="myd-card"><div class="myd-warn">' +
-            esc(panel.title + ' 은 쓰기가 필요한 패널입니다. 1단계 셸은 읽기만 건넵니다.') +
-            '</div></div>';
-          return;
-        }
-
         /* 이 패널의 칸. 다음 패널로 넘어가면 `disposePanel` 이 떼어 냄. */
         const gen = panelGen;
         const isCurrent = (): boolean => gen === panelGen;
@@ -674,25 +914,30 @@ declare const Toolbox:
           statEl.textContent = text;
         };
         statEl.textContent = '';
-        try {
-          const out = panel.render({
-            root: mine,
-            repo,
-            status,
-            isCurrent,
-            /* 이미 넘어간 패널이 뒤늦게 맡기면 다음 패널 목록에 섞임. 그 자리에서 치우기. */
-            onDispose: (fn) => {
-              if (!isCurrent()) {
-                try {
-                  fn();
-                } catch {
-                  /* 치우다 죽어도 화면은 그대로 */
-                }
-                return;
+        const ctx: DashPanelCtx<DashRepoWrite> = {
+          root: mine,
+          repo,
+          status,
+          isCurrent,
+          /* 이미 넘어간 패널이 뒤늦게 맡기면 다음 패널 목록에 섞임. 그 자리에서 치우기. */
+          onDispose: (fn) => {
+            if (!isCurrent()) {
+              try {
+                fn();
+              } catch {
+                /* 치우다 죽어도 화면은 그대로 */
               }
-              cleanups.push(fn);
-            },
-          });
+              return;
+            }
+            cleanups.push(fn);
+          },
+        };
+        try {
+          /* ★ **갈래는 타입에만 있다.** 저장소 객체는 하나고, 읽기 패널의 ctx 타입에는
+             putNewJson 이 없어 부를 수가 없음. 화면 쪽 차단 문구는 없앰 (쓰기가 붙었다).
+             토큰에 쓰기 권한이 있는지는 여기서 못 알아냄. 첫 쓰기가 403, 404 로 막힐 때
+             `perm` 으로 안내 (makeRepo 의 putNewJson). */
+          const out = panel.access === 'read' ? panel.render(ctx) : panel.render(ctx);
           void Promise.resolve(out).catch((e: unknown) => {
             if (isCurrent()) onPanelFail(cfg, e);
           });
@@ -727,6 +972,9 @@ declare const Toolbox:
      * - ratelimit, net: 잠깐 못 닿음. 그대로 두고 다시 시도
      * - notfound: 파일 하나가 없거나 그 경로에 권한이 없는 것. **토큰 문제가 아님.**
      *   경로를 문구에 그대로 보이고 다시 시도. 계정을 바꾸려면 머리말의 나가기
+     * - perm: 읽기는 되는데 쓰기가 막힌 것. 토큰을 지우면 안 됨. 다시 로그인해도 같은 자리에서
+     *   또 막히고, 사람이 보는 것은 로그인이 자꾸 풀리는 화면뿐. GitHub App 설치 화면에서
+     *   Contents 를 Read & write 로 바꾸고 승인해야 풀림
      * - config: 설정 파일 문제. 토큰과 무관하므로 안내만
      */
     function onPanelFail(cfg: Config, e: unknown): void {
@@ -754,6 +1002,12 @@ declare const Toolbox:
           (kind === 'notfound'
             ? '<div class="myd-note">로그인은 그대로입니다. 저장소에 그 경로가 없거나, ' +
               '이 계정이 그 경로를 못 읽습니다. 계정을 바꾸려면 머리말의 나가기.</div>'
+            : '') +
+          (kind === 'perm'
+            ? '<div class="myd-note">로그인은 그대로입니다. 읽기는 되는데 <b>쓰기 권한</b>이 ' +
+              '없습니다. GitHub 의 App 설치 화면에서 Repository permissions 의 Contents 를 ' +
+              'Read &amp; write 로 바꾸고 승인한 뒤 다시 시도하세요. 다시 로그인하지 않아도 ' +
+              '됩니다. 못 보낸 기록은 이 기기에 남아 있다가 권한이 풀리면 같이 올라갑니다.</div>'
             : '') +
           '<div class="myd-row"><button class="myd-btn ghost" data-retry="1">다시 시도</button></div>' +
           '</div>'
@@ -799,7 +1053,7 @@ declare const Toolbox:
       : { title: '내 대시보드', category: 'app', desc: '내 private 저장소를 폰에서 본다' };
     /* **탭은 하나.** 패널 그리기는 셸이 직접.
        셸의 `tabs[]` 는 등록하는 그 순간에 정해진다. 그런데 패널은 나중에 더 붙을 수 있고
-       (2단계의 북마크, 성능), 무엇보다 **로그인 전에는 그릴 패널이 없다**. 탭으로 만들면
+       (북마크, 성능), 무엇보다 **로그인 전에는 그릴 패널이 없다**. 탭으로 만들면
        남이 열었을 때 빈 탭 넷이 보인다. 안쪽에서 우리가 그리면 상태에 따라 갈 수 있다. */
     box.register({
       id: 'mydash',

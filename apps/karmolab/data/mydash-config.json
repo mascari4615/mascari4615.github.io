@@ -1,7 +1,8 @@
 {
-  "_": "개인 대시보드(mydash) 설정. 공개 배포되는 파일이라 비밀값 없음. 릴레이 주소는 relay/wrangler.toml 의 custom_domain 과 같아야 한다.",
+  "_": "개인 대시보드(mydash) 설정. 공개 배포되는 파일이라 비밀값 없음. 릴레이 주소는 relay/wrangler.toml 의 custom_domain 과 같아야 한다. branch 는 생성기가 굽는 읽기 브랜치, eventsBranch 는 화면에서 단 태그가 파일 하나씩 쌓이는 orphan 브랜치.",
   "relay": "https://mydash-relay.mascari4615.com",
   "owner": "Mascari4615",
   "repo": "memo",
-  "branch": "main"
+  "branch": "main",
+  "eventsBranch": "karmolab-dashboard"
 }

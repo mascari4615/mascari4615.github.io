@@ -1,5 +1,5 @@
 /**
- * 개인 대시보드, **패널 등록 규약** (1단계).
+ * 개인 대시보드, **패널 등록 규약**.
  *
  * 이 파일은 엔트리가 아님. 셸과 패널이 각각 자기 묶음 안으로 import 해서 씀
  * (이 레포의 위젯 묶음은 IIFE 라 묶음끼리 모듈을 나눠 갖지 못한다. 그래서 **말을 맞추는 것**은
@@ -8,20 +8,27 @@
  * 규약 한 줄: **패널은 저장소를 모름.** 토큰도, 주소도, 실패 처리도 셸의 일.
  * 패널이 내놓는 것은 셋뿐이다. 자기 이름, 자기가 읽을 저장소 경로, 그리는 함수.
  *
- * 읽기 전용과 읽기/쓰기를 **타입으로 갈라 둔다**. 1단계 셸은 읽기만 건네고, 쓰기를 달라는
- * 패널(`access: 'readwrite'`)이 오면 그리지 않고 아직이라고 적는다. 자리를 미리 파 두되
- * 구현은 안 한다. 나중에 쓰기를 붙일 때 이 파일의 타입만 채우면 되고, 그전까지 실수로
- * 쓰기가 새어 나갈 길이 없음.
+ * 읽기 전용과 읽기/쓰기를 **타입으로 갈라 둔다**. 읽기 패널(`access: 'read'`)에는 읽기 타입만,
+ * 쓰기 패널(`access: 'write'`)에만 쓰기 타입. 셸이 그 갈래로 저장소를 건넴. 읽기 패널이
+ * 실수로 쓰기를 부를 길이 타입에 없음.
  */
 
-/** 저장소에서 **읽기만**. 1단계 패널이 받는 전부. */
+/** 어느 브랜치에서 읽나. 없으면 config 의 `branch`. 이벤트 브랜치를 읽을 때만 채움 */
+export interface DashReadOpts {
+  ref?: string;
+}
+
+/** 저장소에서 **읽기만**. 읽기 패널이 받는 전부. */
 export interface DashRepoRead {
   /** 파일 하나를 글자로. 없으면 던진다. */
-  readText(path: string): Promise<string>;
+  readText(path: string, opts?: DashReadOpts): Promise<string>;
   /** 파일 하나를 JSON 으로. */
-  readJson<T>(path: string): Promise<T>;
-  /** 폴더 하나의 목록. 패널이 host 폴더처럼 **미리 모르는 이름**을 찾을 때 쓴다. */
-  list(path: string): Promise<DashEntry[]>;
+  readJson<T>(path: string, opts?: DashReadOpts): Promise<T>;
+  /**
+   * 폴더 하나의 목록. 패널이 host 폴더나 `<YYYY-MM>` 처럼 **미리 모르는 이름**을 찾을 때.
+   * 없는 폴더는 던지지 않고 빈 배열. 아직 안 만든 이벤트 달을 매번 try 로 감싸지 않게.
+   */
+  list(path: string, opts?: DashReadOpts): Promise<DashEntry[]>;
 }
 
 export interface DashEntry {
@@ -32,13 +39,22 @@ export interface DashEntry {
 }
 
 /**
- * 읽기/쓰기. **2단계 자리**. 지금은 아무도 이걸 못 받음.
+ * 읽기/쓰기.
  *
- * 쓰기는 읽기보다 훨씬 비싸다: 커밋 메시지, sha 충돌, 남의 변경 덮어쓰기, 실패한 쓰기의
- * 되돌리기. 그걸 1단계에 섞으면 읽기가 되는지도 모르는 채로 셸이 커짐.
+ * 쓰기 모양이 **하나뿐**. 파일 하나에 이벤트 하나, 새로 만들기만. 덮어쓰기와 지우기가 없으니
+ * sha 도, 남의 변경을 밀어내는 일도 없음. 같은 경로가 이미 있으면 GitHub 이 422 로 막음.
+ *
+ * 쓰기는 브랜치가 읽기와 다름. 읽기는 `branch`, 쓰기는 `eventsBranch` 고정. 패널이 고를 것 없음.
  */
 export interface DashRepoWrite extends DashRepoRead {
-  putText(path: string, text: string, message: string): Promise<void>;
+  /** 새 파일 생성만 (append 전용). 이미 있으면 던진다. branch 는 config.eventsBranch. 메시지는 "dash: " 접두 */
+  putNewJson(path: string, value: unknown, message: string): Promise<void>;
+  /** 실패한 쓰기를 outbox 에 넣고 나중에 다시 보낸다. 반환은 즉시 */
+  enqueueJson(path: string, value: unknown, message: string): void;
+  /** outbox 를 지금 비운다. 보낸 수와 남은 수 */
+  flushOutbox(): Promise<{ sent: number; left: number }>;
+  eventsBranch: string;
+  deviceId: string;
 }
 
 /** 그릴 때 셸이 건네는 것. 패널은 이것 말고 바깥을 안 본다. */
@@ -77,9 +93,13 @@ export interface DashReadPanel extends DashPanelBase {
   render(ctx: DashPanelCtx<DashRepoRead>): void | Promise<void>;
 }
 
-/** 2단계. 셸이 아직 안 그린다. */
+/**
+ * 쓰기 패널. 셸이 쓰기 저장소를 건넴.
+ *
+ * `readwrite` 는 옛 이름. 셸이 둘 다 받으므로 남아 있는 패널이 안 깨짐. 새 패널은 `write`.
+ */
 export interface DashWritePanel extends DashPanelBase {
-  access: 'readwrite';
+  access: 'write' | 'readwrite';
   render(ctx: DashPanelCtx<DashRepoWrite>): void | Promise<void>;
 }
 
