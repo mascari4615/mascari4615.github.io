@@ -29,9 +29,6 @@ declare const Toolbox:
       register: (m: unknown) => void;
       getLazyWidgetPublicMeta?: (id: string) => object;
       onDispose?: (fn: () => void) => void;
-      /* 셸이 내주면 쓴다. 지금 셸에는 없어서 저장 자리를 직접 본다 (아래 pinSelf). */
-      isPinned?: (id: string) => boolean;
-      togglePin?: (id: string) => boolean;
     }
   | undefined;
 
@@ -114,15 +111,9 @@ declare const Toolbox:
   }
 
   function pinSelf(): void {
-    const box = toolbox();
     try {
-      /* 셸이 공개 함수를 주면 그것부터. 화면에 있는 별과 옆줄을 그 자리에서 맞춤
-         토글이라 이미 꽂혀 있을 때 부르면 빠진다. 반드시 먼저 확인. */
-      if (box && typeof box.togglePin === 'function') {
-        const on = typeof box.isPinned === 'function' ? box.isPinned(SELF_ID) : readPins().indexOf(SELF_ID) >= 0;
-        if (!on) box.togglePin(SELF_ID);
-        return;
-      }
+      /* 저장 자리를 직접 봄. 셸의 togglePin, isPinned 은 `src/toolbox.ts` 의 IIFE 안 지역 함수라
+         공개 API 에 없음. 있는 척 분기해 두면 영영 안 도는 죽은 코드. */
       const pins = readPins();
       if (pins.indexOf(SELF_ID) >= 0) return;
       pins.push(SELF_ID);
@@ -441,7 +432,16 @@ declare const Toolbox:
     /* 지금 보던 패널을 다시 그리는 함수. 오류 카드의 "다시 시도" 가 호출
        로그인 화면으로 갈 때마다 비운다. */
     let reopenPanel: (() => void) | null = null;
+    /* ★ **패널마다 제 칸 하나.** 셸이 `bodyEl` 을 그대로 건네면 늦게 끝난 async render 가
+       이미 다음 패널이 그려 놓은 화면 위에 덮어쓰기 (패널을 빨리 두 번 바꿀 때).
+       그래서 패널을 열 때마다 새 div 를 만들어 붙이고 그 div 만 건넴. 갈아 끼울 때 이전 div 는
+       DOM 에서 떼므로, 늦게 온 render 는 떨어진 div 에 그리기. 화면에는 아무 일 없음. */
+    let panelBox: HTMLElement | null = null;
+    /* 머리말 한 줄(statEl)과 실패 보고는 화면에 하나뿐이라 칸으로 못 가름. 세대 번호로 가름.
+       지금 세대가 아닌 패널이 부르면 무시. */
+    let panelGen = 0;
     function disposePanel(): void {
+      panelGen++;
       for (const fn of cleanups) {
         try {
           fn();
@@ -450,6 +450,10 @@ declare const Toolbox:
         }
       }
       cleanups = [];
+      if (panelBox) {
+        panelBox.remove();
+        panelBox = null;
+      }
     }
     /* 맨바깥 이름 `Toolbox` 우선 확인, 없는 자리(가짜 셸로 재는 테스트)에서만 window 로 확인.
        셸은 `const Toolbox` 로 생성하고 const 는 window 에 안 붙음. window 만 보면 실서비스에서
@@ -657,18 +661,41 @@ declare const Toolbox:
           return;
         }
 
+        /* 이 패널의 칸. 다음 패널로 넘어가면 `disposePanel` 이 떼어 냄. */
+        const gen = panelGen;
+        const isCurrent = (): boolean => gen === panelGen;
+        const mine = document.createElement('div');
+        mine.setAttribute('data-panel-box', panel.id);
+        bodyEl.appendChild(mine);
+        panelBox = mine;
+
         const status = (text: string): void => {
+          if (!isCurrent()) return;
           statEl.textContent = text;
         };
         statEl.textContent = '';
         try {
           const out = panel.render({
-            root: bodyEl,
+            root: mine,
             repo,
             status,
-            onDispose: (fn) => cleanups.push(fn),
+            isCurrent,
+            /* 이미 넘어간 패널이 뒤늦게 맡기면 다음 패널 목록에 섞임. 그 자리에서 치우기. */
+            onDispose: (fn) => {
+              if (!isCurrent()) {
+                try {
+                  fn();
+                } catch {
+                  /* 치우다 죽어도 화면은 그대로 */
+                }
+                return;
+              }
+              cleanups.push(fn);
+            },
           });
-          void Promise.resolve(out).catch((e: unknown) => onPanelFail(cfg, e));
+          void Promise.resolve(out).catch((e: unknown) => {
+            if (isCurrent()) onPanelFail(cfg, e);
+          });
         } catch (e) {
           onPanelFail(cfg, e);
         }
@@ -694,16 +721,18 @@ declare const Toolbox:
     /**
      * 패널이 던진 것. 여기서 막히면 화면이 끝이라 나갈 길이 늘 하나는 있어야 함
      *
-     * ★ 나갈 길이 **실패의 종류마다 다르다**. 요청 한도와 네트워크는 토큰이 멀쩡한데
-     * 잠깐 못 닿은 것이다. 여기서 토큰을 지우면 멀쩡한 로그인을 버리고 기기 흐름을
-     * 처음부터 다시 타게 된다 (한도에 걸린 사람에게 더 많은 요청을 시킨다).
-     * 그래서 ratelimit 과 net 은 토큰을 그대로 두고 패널만 다시 그림
-     * auth 는 위에서 이미 로그인 화면으로 보냈고, notfound 와 config 는 계정이나 설정을
-     * 바꿔야 풀리므로 토큰을 지우는 다시 로그인 유지
+     * ★ **토큰을 지우는 것은 auth 뿐.** 401 을 받은 것만 로그인이 풀린 것.
+     * 나머지는 토큰이 멀쩡한데 다른 이유로 못 읽은 것이라, 지우면 멀쩡한 로그인을 버리고
+     * 기기 흐름을 처음부터 다시 타게 됨 (한도에 걸린 사람에게 더 많은 요청을 시킴).
+     * - ratelimit, net: 잠깐 못 닿음. 그대로 두고 다시 시도
+     * - notfound: 파일 하나가 없거나 그 경로에 권한이 없는 것. **토큰 문제가 아님.**
+     *   경로를 문구에 그대로 보이고 다시 시도. 계정을 바꾸려면 머리말의 나가기
+     * - config: 설정 파일 문제. 토큰과 무관하므로 안내만
      */
     function onPanelFail(cfg: Config, e: unknown): void {
       const err = e as DashError;
       const kind: FailKind = err && err.kind ? err.kind : 'net';
+      const msg = err && err.message ? err.message : '알 수 없는 실패';
       if (kind === 'auth') {
         reopenPanel = null;
         showLoggedOut(cfg, '로그인이 풀렸습니다. 다시 로그인하세요.');
@@ -713,25 +742,26 @@ declare const Toolbox:
         statEl.textContent = '';
         return;
       }
-      const transient = kind === 'ratelimit' || kind === 'net';
       statEl.textContent = '';
-      bodyEl.innerHTML =
+      if (kind === 'config') {
+        showConfigHelp(msg);
+        return;
+      }
+      say(
         '<div class="myd-card"><div class="myd-warn">' +
-        esc(err && err.message ? err.message : '알 수 없는 실패') +
-        '</div><div class="myd-row">' +
-        (transient
-          ? '<button class="myd-btn ghost" data-retry="1">다시 시도</button>'
-          : '<button class="myd-btn ghost" data-relogin="1">다시 로그인</button>') +
-        '</div></div>';
+          esc(msg) +
+          '</div>' +
+          (kind === 'notfound'
+            ? '<div class="myd-note">로그인은 그대로입니다. 저장소에 그 경로가 없거나, ' +
+              '이 계정이 그 경로를 못 읽습니다. 계정을 바꾸려면 머리말의 나가기.</div>'
+            : '') +
+          '<div class="myd-row"><button class="myd-btn ghost" data-retry="1">다시 시도</button></div>' +
+          '</div>'
+      );
       (bodyEl.querySelector('[data-retry]') as HTMLElement | null)?.addEventListener('click', () => {
         /* 토큰은 그대로. 보던 패널만 다시 그린다. 패널이 없으면 목록부터 다시. */
         if (reopenPanel) reopenPanel();
         else void showDashboard(cfg);
-      });
-      (bodyEl.querySelector('[data-relogin]') as HTMLElement | null)?.addEventListener('click', () => {
-        saveToken(null);
-        reopenPanel = null;
-        showLoggedOut(cfg);
       });
     }
 

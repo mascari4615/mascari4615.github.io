@@ -43,11 +43,19 @@ export interface DashRepoWrite extends DashRepoRead {
 
 /** 그릴 때 셸이 건네는 것. 패널은 이것 말고 바깥을 안 본다. */
 export interface DashPanelCtx<R extends DashRepoRead = DashRepoRead> {
-  /** 붙일 자리. 셸이 비워서 준다. */
+  /**
+   * 붙일 자리. 셸이 **이 패널만의 새 div** 를 만들어 줌. 다음 패널로 넘어가면 셸이 이 div 를
+   * DOM 에서 떼므로, 늦게 끝난 render 가 여기 그려도 화면에는 안 보임. 밖으로 기어 나가지 마라.
+   */
   root: HTMLElement;
   repo: R;
-  /** 머리말 오른쪽에 한 줄. 굽는 중, 언제 구운 것인가 같은 말. */
+  /** 머리말 오른쪽에 한 줄. 굽는 중, 언제 구운 것인가 같은 말. 지난 패널이 부르면 셸이 무시. */
   status(text: string): void;
+  /**
+   * 이 패널이 아직 화면에 있나. 셸이 `root` 와 `status` 를 이미 막아 주므로 보통은 안 봐도 됨.
+   * 긴 async 를 도중에 접거나, 셸이 안 막아 주는 것(전역 타이머, 바깥 저장)을 건드릴 때만.
+   */
+  isCurrent(): boolean;
   /** 화면을 떠날 때 치울 것 (타이머, 이벤트). 셸이 불러 준다. */
   onDispose(fn: () => void): void;
 }
@@ -134,9 +142,23 @@ export function hours(ms: number): string {
 /**
  * href 에 넣어도 되는 주소인가. https 만 통과, 나머지는 null.
  * 밖에서 온 주소를 그대로 걸었을 때 javascript: 같은 것이 링크가 되는 것 방지.
+ *
+ * **기기 흐름의 `verification_uri` 전용.** 사람이 토큰을 넣을 자리라 http 는 안 받음.
+ * 저장소에서 온 북마크 링크는 아래 `safeLinkUrl`.
  */
 export function httpsUrl(s: unknown): string | null {
   return typeof s === 'string' && /^https:\/\//i.test(s) ? s : null;
+}
+
+/**
+ * 저장소에서 온 링크를 href 에 걸어도 되나. **http 와 https 만** 통과, 나머지는 null.
+ *
+ * 북마크에는 사내 도구나 공유기 화면처럼 http 인 것이 섞임. `httpsUrl` 로 재면 그게 전부
+ * 글자로만 남아 못 누름. 그렇다고 아무거나 걸 수는 없음. javascript: 는 누르는 순간 이 화면의
+ * 토큰까지 닿고, data: 는 우리 주소로 남의 화면을 엶. 둘 다 여기서 막힘 (앞이 http 가 아님).
+ */
+export function safeLinkUrl(s: unknown): string | null {
+  return typeof s === 'string' && /^https?:\/\//i.test(s) ? s : null;
 }
 
 /** 화면에 넣기 전에. 저장소에서 온 글자는 남이 쓴 것으로 친다. */

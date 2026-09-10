@@ -65,3 +65,16 @@ jobs:
             [ "$i" = "6" ] || sleep 10
           done
           [ "$code" = "403" ] || { echo "::error::릴레이 응답이 예상과 다름 ($code)"; exit 1; }
+
+      # 거절만 확인하면 origin 허용 경로가 죽어도 못 잡는다. 허용 origin 을 붙여
+      # 한 번 더 쳐서 실제로 기기 코드가 나오는지 본다. 기기 코드는 15분 뒤 소멸,
+      # 아무도 못 쓰니 무해
+      - name: Smoke (allowed origin)
+        run: |
+          url=https://mydash-relay.mascari4615.com/device/code
+          body=$(curl -s -X POST "$url" -H 'Origin: https://blog.mascari4615.com')
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url" -H 'Origin: https://blog.mascari4615.com')
+          echo "allowed-origin -> $code"
+          echo "$body"
+          [ "$code" = "200" ] || { echo "::error::허용 origin 요청이 200 이 아님 ($code)"; exit 1; }
+          echo "$body" | grep -q 'user_code' || { echo "::error::응답 본문에 user_code 없음"; exit 1; }

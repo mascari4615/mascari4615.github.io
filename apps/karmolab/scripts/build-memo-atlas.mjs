@@ -241,8 +241,17 @@ ${got.body}`.slice(0, 1800);
 function collectBookmarks(file) {
   if (!file || !fs.existsSync(file)) return [];
   let raw;
-  try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return []; }
-  const items = raw.items || [];
+  try {
+    raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    /* 파싱 실패를 삼키고 0건으로 넘어가면 "북마크 없음"과 "파일이 깨졌다"가
+       똑같이 보인다. 그건 조용한 고장이라 예외로 세운다. */
+    throw new Error(`북마크 파일 파싱 실패: ${file} (${e.message})`);
+  }
+  if (!Array.isArray(raw.items)) {
+    throw new Error(`북마크 파일에 items 배열이 없다: ${file}`);
+  }
+  const items = raw.items;
   const docs = [];
   for (const it of items) {
     const text = `${it.text || ''}`.replace(/\s+/g, ' ').trim();
@@ -278,7 +287,7 @@ function collectBookmarksAll() {
     if (!src.xBookmarks) return [];
     const file = path.join(src.root, src.xBookmarks);
     if (!fs.existsSync(file) && !src.optional) {
-      throw new Error(`북마크 소스 파일이 없다: ${file} (소스 ${src.name})`);
+      throw new Error(`북마크 소스 파일이 없다: ${file} (소스 ${src.name}). memo 를 pull 하면 생기는 파일`);
     }
     return collectBookmarks(file);
   });
@@ -7226,7 +7235,7 @@ async function nameClusters(groups) {
   return names;
 }
 
-export { collect, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
+export { collect, collectBookmarksAll, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
 
 async function main() {
   requireSources();   // 굽기는 소스가 있어야 한다. config 오류, 없는 root 는 여기서 분명히 죽는다

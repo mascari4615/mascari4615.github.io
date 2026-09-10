@@ -42,6 +42,13 @@ import type { DashPanelCtx } from './kit';
     byHour: Record<string, Bucket>;
     promptsByDay?: Record<string, PromptStat>;
     promptsByMonth?: Record<string, PromptStat>;
+    /**
+     * 날짜별 저장소, 모델 쪼갬. 2026-09-10 mois 롤업에는 없음
+     * (`byRepo`, `byModel` 은 ingest.mjs 의 전량 누적 전용).
+     * 있으면 목록이 기간 칩 반영, 없으면 제목에 전체 기간 표기
+     */
+    byRepoByDay?: Record<string, Record<string, Bucket>>;
+    byModelByDay?: Record<string, Record<string, Bucket>>;
     coverage?: {
       lastHistory?: string; firstHistory?: string; claudeTranscripts?: number; historyPrompts?: number;
       historySessions?: number;
@@ -206,7 +213,13 @@ import type { DashPanelCtx } from './kit';
     return b ? get(b) || 0 : 0;
   }
 
-  /** 창 안의 프롬프트 합. promptsByDay 가 없는 옛 롤업만 byDay 로 물러선다. */
+  /**
+   * 창 안의 프롬프트 합. promptsByDay 없는 옛 롤업만 byDay 로 물러섬.
+   * 소스를 byDay 로 바꾸지 말 것. history 가 정본, 1년 창 합 12,619 가
+   * coverage.historyPrompts 와 일치. byDay 는 transcript 남은 세션만 담아
+   * 30일 창 4,259, 90일 창 6,278 로 창이 좁을수록 오히려 부풀어 보임
+   * (같은 창에서 promptsByDay 는 3,792 와 5,852). 줄어드는 쪽이 맞는 값
+   */
   function promptsInWindow(roll: Rollups, days: string[]): number {
     let n = 0;
     for (const d of days) n += dayValue(roll, 'prompts', (b) => b.prompts, d);
@@ -215,15 +228,11 @@ import type { DashPanelCtx } from './kit';
 
   /**
    * 창 안의 세션 합. 프롬프트와 같은 소스.
-   * promptsByDay 가 아예 없는 옛 롤업은 coverage.historySessions 로 후퇴
-   * (그 값은 창이 아니라 전량이라, 이 자리에서는 근사).
-   * 날짜를 넘긴 세션은 날마다 한 번씩 세므로 coverage.historySessions 보다 클 수 있음
+   * promptsByDay 없는 옛 롤업은 dayValue 안에서 byDay 의 창 합으로 물러섬.
+   * coverage.historySessions 는 창이 아니라 전량이라 여기서 제외.
+   * 2026-09-10 실측: 30일 창에서 창 합 193, coverage 511. 창 무시 시 두 배 넘는 과대
    */
   function sessionsInWindow(roll: Rollups, days: string[]): number {
-    if (!roll.promptsByDay) {
-      const fromCoverage = roll.coverage?.historySessions;
-      if (typeof fromCoverage === 'number' && fromCoverage > 0) return fromCoverage;
-    }
     let n = 0;
     for (const d of days) n += dayValue(roll, 'sessions', (b) => b.sessions, d);
     return n;
@@ -232,6 +241,28 @@ import type { DashPanelCtx } from './kit';
   function topList(rec: Record<string, Bucket>, pick: (b: Bucket) => number, limit: number): Array<[string, number]> {
     const rows: Array<[string, number]> = [];
     for (const k of Object.keys(rec || {})) rows.push([k, pick(rec[k]) || 0]);
+    rows.sort((a, b) => b[1] - a[1]);
+    return rows.slice(0, limit);
+  }
+
+  /**
+   * 창 안의 저장소, 모델 합. 날짜별 쪼갬 있을 때만 창 반영.
+   * 없으면 null 반환, 호출부가 전량 목록과 전체 기간 제목으로 대체
+   */
+  function windowedTop(
+    byDayRec: Record<string, Record<string, Bucket>> | undefined,
+    days: string[],
+    pick: (b: Bucket) => number,
+    limit: number
+  ): Array<[string, number]> | null {
+    if (!byDayRec) return null;
+    const acc: Record<string, number> = {};
+    for (const d of days) {
+      const per = byDayRec[d];
+      if (!per) continue;
+      for (const k of Object.keys(per)) acc[k] = (acc[k] || 0) + (pick(per[k]) || 0);
+    }
+    const rows: Array<[string, number]> = Object.keys(acc).map((k) => [k, acc[k]]);
     rows.sort((a, b) => b[1] - a[1]);
     return rows.slice(0, limit);
   }
@@ -338,10 +369,19 @@ import type { DashPanelCtx } from './kit';
       const months = monthKeys.sort().reverse().slice(0, 6);
       const monthRows: Array<[string, number]> = months.map((k) => [k, monthValue(roll, m.id, m.get, k)]);
 
+      /* 저장소와 모델은 창별 자료가 있을 때만 칩을 따른다. 없으면 전량을 그대로 보이고
+         제목에 전체 기간이라고 적는다. 창 제목에 전량 수치를 넣으면 거짓말이 된다. */
+      const modelWin = windowedTop(roll.byModelByDay, days, (b) => b.sessions, 6);
+      const repoWin = windowedTop(roll.byRepoByDay, days, m.get, 5);
+      const modelRows = modelWin || topList(roll.byModel, (b) => b.sessions, 6);
+      const repoRows = repoWin || topList(roll.byRepo, m.get, 5);
+      const modelTitle = modelWin ? '모델 (세션)' : '모델 (세션, 전체 기간)';
+      const repoTitle = repoWin ? '저장소 (' + m.label + ')' : '저장소 (' + m.label + ', 전체 기간)';
+
       restEl.innerHTML =
         listHtml('달마다 (' + m.label + ')', monthRows, m.fmt) +
-        listHtml('모델 (세션)', topList(roll.byModel, (b) => b.sessions, 6), (n) => short(n) + '판') +
-        listHtml('저장소 (' + m.label + ')', topList(roll.byRepo, m.get, 5), m.fmt) +
+        listHtml(modelTitle, modelRows, (n) => short(n) + '판') +
+        listHtml(repoTitle, repoRows, m.fmt) +
         '<div class="au-foot">' +
         esc(
           '환산가는 실제 결제액이 아니라 토큰을 정가로 환산한 값이다. ' +

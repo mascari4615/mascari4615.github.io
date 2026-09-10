@@ -6,12 +6,20 @@
  * 변경 대상이라 박아 두면 값 하나 늘 때마다 배포 필요. 화면은 axes.json 을 읽어 칩만
  * 만들고, 거기 없는 값이 항목에 있으면 그 값 자체를 라벨로 표시 (미아 은닉 금지).
  *
- * 쓰기 없음. 태깅, 열람 표시, 승격은 3단계 몫. 여기는 사람 판정 대기 건수만 숫자로 표시.
+ * `axes.json` 은 **선택.** 못 받으면 빈 정의로 대체, 값 자체가 라벨.
+ * 화면을 못 그리게 하는 것은 `summary.json` 실패 하나뿐.
+ *
+ * 링크는 킷의 `safeLinkUrl` 로 판정. http 도 통과 (실측 2026-09-10: 1,097건 중 22건 http).
+ * 거부된 주소는 링크 대신 글자 옆에 "주소 열 수 없음" 표식.
+ *
+ * 저장소 쓰기 없음. 태깅, 열람 표시, 승격은 3단계 몫. 여기는 사람 판정 대기 건수만 숫자 표시.
+ * 이 기기에만 남는 것 하나는 재발굴로 이미 보여 준 id (localStorage). 순수 보기 편의라 저장소와
+ * 무관, 저장이 막힌 브라우저에서도 화면은 그대로 동작.
  *
  * 출처 라벨(X, 브라우저, 카톡)만 i18n 소관. `src` 는 축이 아니라 데이터 갈래라
  * axes.json 에 정의 없음. 모르는 갈래는 값 그대로 표시.
  */
-import { dashRegistry, esc, httpsUrl } from './kit';
+import { dashRegistry, esc, safeLinkUrl } from './kit';
 import type { DashPanelCtx } from './kit';
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -30,14 +38,19 @@ import { t, loadNamespace } from '../../lib/i18n';
     author?: string | null;
     recordedAt?: string | null;
     note?: string | null;
+    /** 원본 줄의 작은 제목. label 이 비었을 때 표시 문자열의 첫 조각이 된다 */
+    subhead?: string | null;
     /** 사람 판정 대기 표식. 값이 있으면 의도가 비어 있는 것이 정상이다 */
     pending?: string | null;
     /** 묶음 열쇠. 생성기가 항목에 직접 달거나 `data.bundles` 로 따로 낸다. 둘 다 받는다 */
     bundle?: string | null;
     bundleKey?: string | null;
     axes?: Record<string, unknown>;
-    /** 몇 번 남에게 보냈나. 아직 생산자가 없다. 없으면 1 로 본다 */
-    shares?: number;
+    /**
+     * 같은 주소가 다른 출처에서 또 나온 기록. 생성기가 배열로 낸다 (`shares` 라는 이름의
+     * 숫자 필드는 스키마에 없음). 재발굴 점수에서 이 배열 길이를 나눗수로 사용.
+     */
+    shared?: unknown[];
   };
   type BundleDef = { key?: string; id?: string; items?: string[] };
   type Summary = {
@@ -57,12 +70,26 @@ import { t, loadNamespace } from '../../lib/i18n';
   /** 한 번에 보이는 줄 수. 묶음은 접힌 채로 한 줄이다 */
   const PAGE = 100;
   /** 재발굴 후보 크기. 여기서 날짜 씨앗으로 하나 뽑는다 */
-  const REVISIT_POOL = 8;
+  const REVISIT_POOL = 40;
+  /** 이 기기에서 이미 보여 준 재발굴 id. 순수 보기 편의라 기기마다 따로 둔다 */
+  const SEEN_KEY = 'karmolab.mydash.bm.seen';
+  /** 기억할 id 수. 넘치면 오래된 것부터 버린다 */
+  const SEEN_MAX = 200;
+  /** note 로 제목을 대신할 때 잘라 쓰는 길이 */
+  const NOTE_HEAD = 40;
   /** 화면에 세울 필터 축. 여기 없는 축(우선순위, 생애주기, 주제)은 1단계에서 안 쓴다 */
   const FILTER_AXES = ['intent', 'domain', 'form'];
   /** 출처 칸 차례. 나머지는 뒤에 이름순으로 붙는다 */
   const SRC_ORDER = ['x', 'edge', 'kakao'];
   const KST_OFFSET_MS = 9 * 3600000;
+
+  /** 출처 차례 재는 자. 칩 줄과 재발굴 후보가 같은 차례를 쓴다 */
+  function bySrcOrder(a: string, b: string): number {
+    const ai = SRC_ORDER.indexOf(a);
+    const bi = SRC_ORDER.indexOf(b);
+    if (ai !== bi) return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+    return a < b ? -1 : 1;
+  }
 
   const STYLE_ID = 'mydash-bookmarks-style';
   function ensureStyle(): void {
@@ -94,6 +121,8 @@ import { t, loadNamespace } from '../../lib/i18n';
       '.bm-body{display:flex;flex-direction:column;gap:var(--space-xs);min-width:0;flex:1}',
       '.bm-title{display:flex;align-items:center;min-height:var(--bm-tap);',
       'color:var(--text-primary);word-break:break-word}',
+      /* 열 수 없는 주소 표식. 글자 옆에 붙어 왜 링크가 아닌지 말한다. */
+      '.bm-badurl{margin-left:var(--space-sm);font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       '.bm-meta{display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:center;',
       'font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       '.bm-row .bm-meta .tool-chip{pointer-events:none}',
@@ -134,6 +163,54 @@ import { t, loadNamespace } from '../../lib/i18n';
     return typeof v === 'string' ? v : '';
   }
 
+  /** 주소의 집 이름. 표시 문자열의 마지막 조각으로 쓴다 */
+  function hostOf(url: unknown): string {
+    const m = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]+)/i.exec(text(url).trim());
+    return m ? m[1].replace(/^www\./i, '').toLowerCase() : '';
+  }
+
+  /**
+   * 화면에 보일 제목. 원본에 제목이 없는 항목이 193건이라 그대로 두면 원시 id 노출.
+   * 차례는 셋. label, 없으면 note 앞 40자, 그래도 없으면 작은 제목과 작성자와 집 이름.
+   * 검색도 이 문자열 대상 (보이는 글자로 못 찾는 것 방지).
+   */
+  function displayLabel(it: Item): string {
+    const label = text(it.label).trim();
+    if (label) return label;
+    const note = text(it.note).trim();
+    if (note) return note.length > NOTE_HEAD ? note.slice(0, NOTE_HEAD) + '...' : note;
+    const bits: string[] = [text(it.subhead).trim() || t('mydash.bm.noTitle', undefined, '제목 없음')];
+    const author = text(it.author).trim();
+    if (author) bits.push(author);
+    const host = hostOf(it.url);
+    if (host) bits.push(host);
+    return bits.join(', ');
+  }
+
+  /* ── 이 기기에서 이미 보여 준 재발굴 ──────────────────
+     쓰기는 저장소가 아니라 이 브라우저다. 사생활 보호 창처럼 저장이 막힌 판에서는
+     읽기도 쓰기도 조용히 실패하고, 재발굴은 미룸 없이 그냥 돈다. */
+
+  function seenIds(): string[] {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(SEEN_KEY) || '[]') as unknown;
+      return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function markSeen(id: string): void {
+    if (!id) return;
+    try {
+      const next = seenIds().filter((x) => x !== id);
+      next.push(id);
+      window.localStorage.setItem(SEEN_KEY, JSON.stringify(next.slice(-SEEN_MAX)));
+    } catch {
+      /* 저장이 막힌 브라우저. 다음에도 같은 것이 나올 뿐 화면은 안 죽는다 */
+    }
+  }
+
   /* ── 날짜 ─────────────────────────────────────────── */
 
   function kstDayKey(ms: number): string {
@@ -156,9 +233,9 @@ import { t, loadNamespace } from '../../lib/i18n';
     const at = Date.parse(text(iso));
     if (!isFinite(at)) return '';
     const d = Math.floor((Date.now() - at) / 86400000);
-    if (d <= 0) return t('mydash.bm.baked.today');
-    if (d === 1) return t('mydash.bm.baked.yesterday');
-    return t('mydash.bm.baked.days', { n: d });
+    if (d <= 0) return t('mydash.bm.baked.today', undefined, '오늘 구움');
+    if (d === 1) return t('mydash.bm.baked.yesterday', undefined, '어제 구움');
+    return t('mydash.bm.baked.days', { n: d }, '{n}일 전에 구움');
   }
 
   /* ── 화면 ─────────────────────────────────────────── */
@@ -173,27 +250,41 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   async function render(ctx: DashPanelCtx): Promise<void> {
     ensureStyle();
-    await loadNamespace('mydash');
+    /* 옮긴 말이 안 와도 그린다. 아래 모든 t 호출에 한국어 원본이 딸려 있다 */
+    await loadNamespace('mydash').catch(() => undefined);
     const { root, repo, status } = ctx;
-    root.innerHTML = '<div class="bm"><div class="tool-status">' + esc(t('mydash.bm.loading')) + '</div></div>';
+    root.innerHTML =
+      '<div class="bm"><div class="tool-status">' +
+      esc(t('mydash.bm.loading', undefined, '저장소에서 받는 중...')) +
+      '</div></div>';
 
+    /* 필수는 summary 하나. axes 는 칩 라벨과 차례만 정하는 파일이라, 못 받으면 빈 정의로
+       가고 값 자체를 라벨로 보인다 (미아 은닉 금지와 같은 손). summary 실패만 오류다. */
     const [rawSummary, rawAxes] = await Promise.all([
       repo.readJson<Summary>(SUMMARY_PATH),
-      repo.readJson<AxesFile>(AXES_PATH),
+      repo.readJson<AxesFile>(AXES_PATH).catch((): AxesFile => ({})),
     ]);
 
     const major = schemaMajor(rawSummary.schema);
     if (major !== null && major !== SCHEMA_MAJOR) {
       root.innerHTML =
         '<div class="bm"><div class="tool-status error">' +
-        esc(t('mydash.bm.schemaBad', { schema: text(rawSummary.schema) })) +
+        esc(
+          t(
+            'mydash.bm.schemaBad',
+            { schema: text(rawSummary.schema) },
+            '모르는 판입니다 ({schema}). 대시보드를 다시 배포하세요'
+          )
+        ) +
         '</div></div>';
       return;
     }
 
     const items = itemsOf(rawSummary);
     const axes = axesOf(rawAxes);
-    status(t('mydash.bm.status', { n: items.length, when: bakedAgo(rawSummary.generatedAt) }));
+    status(
+      t('mydash.bm.status', { n: items.length, when: bakedAgo(rawSummary.generatedAt) }, '{n}건, {when}')
+    );
 
     /* 묶음 열쇠. 항목에 달려 오면 그대로, `data.bundles` 로 오면 표로 뒤집어 붙인다. */
     const bundleOf = new Map<string, string>();
@@ -224,16 +315,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     const groups: Group[] = [];
     {
       const seen = countValues((it) => (text(it.src) ? [text(it.src)] : []));
-      const keys = Array.from(seen.keys()).sort((a, b) => {
-        const ai = SRC_ORDER.indexOf(a);
-        const bi = SRC_ORDER.indexOf(b);
-        if (ai !== bi) return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
-        return a < b ? -1 : 1;
-      });
+      const keys = Array.from(seen.keys()).sort(bySrcOrder);
       if (keys.length) {
         groups.push({
           key: 'src',
-          label: t('mydash.bm.filter.src'),
+          label: t('mydash.bm.filter.src', undefined, '출처'),
           values: keys.map((k) => ({ key: k, label: srcLabel(k), n: seen.get(k) || 0 })),
         });
       }
@@ -275,7 +361,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const srcGroup = groups.filter((g) => g.key === 'src')[0];
     const numHtml: string[] = [
       '<div class="bm-num"><b>' + esc(String(items.length)) + '</b><span>' +
-        esc(t('mydash.bm.num.total')) + '</span></div>',
+        esc(t('mydash.bm.num.total', undefined, '전체')) + '</span></div>',
     ];
     for (const v of (srcGroup && srcGroup.values) || []) {
       numHtml.push(
@@ -284,16 +370,24 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     numHtml.push(
       '<div class="bm-num"><b>' + esc(String(pendingCount)) + '</b><span>' +
-        esc(t('mydash.bm.num.pending')) + '</span></div>'
+        esc(t('mydash.bm.num.pending', undefined, '판정 대기')) + '</span></div>'
     );
 
     const parseFailed = (rawSummary.counts && rawSummary.counts.parseFailed) || 0;
     const notes: string[] = [];
     if (parseFailed > 0) {
-      notes.push('<div class="tool-status error">' + esc(t('mydash.bm.parseFailed', { n: parseFailed })) + '</div>');
+      notes.push(
+        '<div class="tool-status error">' +
+          esc(t('mydash.bm.parseFailed', { n: parseFailed }, '못 읽은 줄 {n}건. 생성기 확인')) +
+          '</div>'
+      );
     }
     if (pendingCount > 0) {
-      notes.push('<div class="tool-status">' + esc(t('mydash.bm.pendingNote', { n: pendingCount })) + '</div>');
+      notes.push(
+        '<div class="tool-status">' +
+          esc(t('mydash.bm.pendingNote', { n: pendingCount }, '판정 대기 {n}건. 의도는 사람이 고른다')) +
+          '</div>'
+      );
     }
 
     const groupHtml = groups
@@ -316,9 +410,9 @@ import { t, loadNamespace } from '../../lib/i18n';
       notes.join('') +
       '<div class="bm-groups">' + groupHtml + '</div>' +
       '<div class="field-group"><label class="field-label" for="bm-q">' +
-      esc(t('mydash.bm.search.label')) + '</label>' +
+      esc(t('mydash.bm.search.label', undefined, '검색')) + '</label>' +
       '<input id="bm-q" type="search" autocomplete="off" placeholder="' +
-      esc(t('mydash.bm.search.ph')) + '"></div>' +
+      esc(t('mydash.bm.search.ph', undefined, '제목, 작성자, 메모')) + '"></div>' +
       '<div class="bm-revisit" data-revisit="1"></div>' +
       '<div class="tool-status" data-count="1"></div>' +
       '<div class="tool-list bm-list" data-list="1"></div>' +
@@ -355,7 +449,9 @@ import { t, loadNamespace } from '../../lib/i18n';
         if (!hit) return false;
       }
       if (query) {
-        const hay = (text(it.label) + ' ' + text(it.author) + ' ' + text(it.note)).toLowerCase();
+        /* 보이는 글자를 그대로 찾는다. label 이 빈 항목은 화면에 대체 문자열이 떠 있어
+           원본 label 로만 재면 눈에 보이는 말로 못 찾는다. */
+        const hay = (displayLabel(it) + ' ' + text(it.author) + ' ' + text(it.note)).toLowerCase();
         if (hay.indexOf(query) < 0) return false;
       }
       return true;
@@ -392,9 +488,15 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     /* ── 줄 그리기 ── */
     function titleHtml(it: Item): string {
-      const label = text(it.label) || text(it.id);
-      const url = httpsUrl(it.url);
-      if (!url) return '<span class="bm-title">' + esc(label) + '</span>';
+      const label = displayLabel(it) || text(it.id);
+      const url = safeLinkUrl(it.url);
+      if (!url) {
+        /* 주소가 있는데 거부된 것과, 애초에 주소가 없는 것을 가른다. 거부는 표식으로 말한다 */
+        const mark = text(it.url).trim()
+          ? '<span class="bm-badurl">' + esc(t('mydash.bm.badUrl', undefined, '주소 열 수 없음')) + '</span>'
+          : '';
+        return '<span class="bm-title">' + esc(label) + mark + '</span>';
+      }
       return (
         '<a class="bm-title" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' +
         esc(label) + '</a>'
@@ -408,7 +510,9 @@ import { t, loadNamespace } from '../../lib/i18n';
       const day = text(it.recordedAt).slice(0, 10);
       if (day) bits.push('<span>' + esc(day) + '</span>');
       if (text(it.pending)) {
-        bits.push('<span class="tool-chip">' + esc(t('mydash.bm.pendingChip')) + '</span>');
+        bits.push(
+          '<span class="tool-chip">' + esc(t('mydash.bm.pendingChip', undefined, '판정 대기')) + '</span>'
+        );
       } else {
         for (const v of axisValues(it, 'intent')) {
           bits.push('<span class="tool-chip">' + esc(intentLabel.get(v) || v) + '</span>');
@@ -429,39 +533,105 @@ import { t, loadNamespace } from '../../lib/i18n';
     function unitHtml(u: Unit): string {
       if (u.items.length < 2) return rowHtml(u.items[0], '');
       const isOpen = opened.has(u.key);
+      /* 머리 줄도 항목 하나. 자식과 같은 meta (날짜, 작성자, 의도 칩, 판정 대기 칩) 를 부착.
+         접힌 상태에서 보이는 것이 이 줄뿐이라, 빠지면 묶음 첫 항목만 정보 결여. */
       const head =
         '<div class="tool-list-row bm-row">' +
         '<div class="tool-list-key">' + esc(srcLabel(text(u.items[0].src))) + '</div>' +
         '<div class="tool-list-val bm-body">' +
         titleHtml(u.items[0]) +
+        metaHtml(u.items[0]) +
         '<div class="tool-actions tight"><button type="button" class="btn btn-ghost" data-act="bundle" ' +
         'data-key="' + esc(u.key) + '" aria-expanded="' + (isOpen ? 'true' : 'false') + '">' +
-        esc(t('mydash.bm.bundle', { n: u.items.length })) + ' ' +
-        esc(isOpen ? t('mydash.bm.bundleClose') : t('mydash.bm.bundleOpen')) +
+        esc(t('mydash.bm.bundle', { n: u.items.length }, '묶음 {n}건')) + ' ' +
+        esc(
+          isOpen
+            ? t('mydash.bm.bundleClose', undefined, '접기')
+            : t('mydash.bm.bundleOpen', undefined, '펼치기')
+        ) +
         '</button></div></div></div>';
       if (!isOpen) return head;
       return head + u.items.slice(1).map((it) => rowHtml(it, 'bm-kid')).join('');
     }
 
     /* ── 재발굴 한 칸 ──
-       점수는 방치일수 x 미열람 x (1 / 공유횟수). 열람 표시는 아직 생산자가 없어 전부 미열람(1),
-       공유횟수도 없어 1 이다. 그래서 지금 점수는 방치일수 그대로다. 필드가 생기면 여기만 는다.
-       고르기는 날짜 씨앗이라 하루 동안 안 바뀐다. 필터와 무관하게 전체에서 뽑는다. */
+       방치일수는 **날것으로 재면 안 됨**. 출처마다 모은 기간이 다름 (실측 2026-09-10:
+       카톡은 2025-08 부터 1년치, X 와 브라우저는 2026-08 한 주치). 날것 점수로는
+       상위 8건이 영원히 카톡 고정.
+
+       방치일수를 **그 출처 안에서** 0~1 로 정규화하는 것만으로도 미해결. 정규화 점수로
+       한 줄 세워 상위 40 을 끊으면 폭이 좁은 출처가 독점 (실측 2026-09-10: 브라우저
+       82건이 전부 같은 날짜라 폭이 0, 만점 처리 시 후보 40 이 전부 브라우저. 폭 0 을 0.5 로
+       낮추면 이번엔 X 39 에 카톡 1). 한 자로 재서 한 줄로 세우는 한 데이터가 제일 고른
+       출처의 독점.
+
+       그래서 순위는 **출처 안에서만** 매기고, 후보 40 은 출처를 번갈아 채움 (실측 결과
+       브라우저 14, 카톡 13, X 13). 점수는 정규화 방치도 / 공유 횟수, 공유 횟수는 `shared`
+       배열 길이 (없으면 1).
+
+       고르기는 날짜 씨앗이라 같은 후보 목록에서 같은 날 같은 자리를 지정. 다만 보여 준 id 를
+       그 자리에서 기록해, 같은 날 다시 열면 그 다음 것이 노출. 필터와 무관하게 전체 대상. */
+    function revisitPool(): Item[] {
+      const lo = new Map<string, number>();
+      const hi = new Map<string, number>();
+      for (const it of items) {
+        const days = idleDays(it.recordedAt);
+        if (days < 0) continue;
+        const src = text(it.src);
+        const a = lo.get(src);
+        const b = hi.get(src);
+        if (a === undefined || days < a) lo.set(src, days);
+        if (b === undefined || days > b) hi.set(src, days);
+      }
+      const bySrc = new Map<string, Array<{ it: Item; score: number }>>();
+      for (const it of items) {
+        const days = idleDays(it.recordedAt);
+        if (days < 0) continue;
+        const src = text(it.src);
+        const a = lo.get(src) as number;
+        const b = hi.get(src) as number;
+        const span = b - a;
+        /* 한 출처의 날짜가 하나뿐이면 나눌 폭이 없다. 그 출처 안에서는 전부 같은 값이고
+           출처끼리는 안 겨루므로 만점으로 둔다 */
+        const norm = span > 0 ? (days - a) / span : 1;
+        const shared = Array.isArray(it.shared) ? it.shared.length : 0;
+        const row = { it, score: norm / (shared > 0 ? shared : 1) };
+        const list = bySrc.get(src);
+        if (list) list.push(row);
+        else bySrc.set(src, [row]);
+      }
+      const srcs = Array.from(bySrc.keys()).sort(bySrcOrder);
+      for (const s of srcs) {
+        (bySrc.get(s) as Array<{ it: Item; score: number }>).sort((x, y) =>
+          y.score !== x.score ? y.score - x.score : text(x.it.id) < text(y.it.id) ? -1 : 1
+        );
+      }
+      const pool: Item[] = [];
+      for (let i = 0; pool.length < REVISIT_POOL; i++) {
+        let added = false;
+        for (const s of srcs) {
+          const list = bySrc.get(s) as Array<{ it: Item; score: number }>;
+          if (i >= list.length) continue;
+          pool.push(list[i].it);
+          added = true;
+          if (pool.length >= REVISIT_POOL) break;
+        }
+        if (!added) break;
+      }
+      return pool;
+    }
+
     function revisitPick(): Item | null {
-      const scored = items
-        .map((it) => {
-          const days = idleDays(it.recordedAt);
-          const shares = typeof it.shares === 'number' && it.shares > 0 ? it.shares : 1;
-          return { it, days, score: days < 0 ? -1 : days / shares };
-        })
-        .filter((r) => r.score >= 0);
-      if (!scored.length) return null;
-      scored.sort((a, b) => (b.score !== a.score ? b.score - a.score : text(a.it.id) < text(b.it.id) ? -1 : 1));
-      const pool = scored.slice(0, REVISIT_POOL);
+      const pool = revisitPool();
+      if (!pool.length) return null;
+      /* 이 기기에서 이미 보여 준 것은 후보 뒤로. 전부 봤으면 다시 처음부터 돈다 */
+      const seen = new Set(seenIds());
+      const fresh = pool.filter((it) => !seen.has(text(it.id)));
+      const use = fresh.length ? fresh : pool;
       const seed = kstDayKey(Date.now());
       let h = 0;
       for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-      return pool[h % pool.length].it;
+      return use[h % use.length];
     }
 
     function paintRevisit(): void {
@@ -472,9 +642,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       const days = idleDays(it.recordedAt);
       revisitEl.innerHTML =
-        '<div class="tool-sublabel">' + esc(t('mydash.bm.revisit')) + '</div>' +
+        '<div class="tool-sublabel">' + esc(t('mydash.bm.revisit', undefined, '재발굴')) + '</div>' +
         '<div class="tool-list">' + rowHtml(it, '') + '</div>' +
-        '<div class="tool-hint">' + esc(t('mydash.bm.revisitIdle', { n: days })) + '</div>';
+        '<div class="tool-hint">' + esc(t('mydash.bm.revisitIdle', { n: days }, '{n}일 방치')) + '</div>';
+      markSeen(text(it.id));
     }
 
     function paint(): void {
@@ -485,12 +656,27 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       const list = items.filter(matches).sort(byRecent);
       const units = unitsOf(list);
-      countEl.textContent = t('mydash.bm.count', { n: list.length });
+      /* 건수 줄과 더 보기가 서로 다른 것을 세면 숫자가 안 맞는다 (전에는 항목 수와 묶음 수).
+         둘 다 항목 수와 묶음 수를 같이 보인다. shown 이 세는 것은 묶음이다. */
+      countEl.textContent = t(
+        'mydash.bm.count',
+        { n: list.length, m: units.length },
+        '항목 {n} (묶음 {m})'
+      );
       listEl.innerHTML = units.slice(0, shown).map(unitHtml).join('') ||
-        '<div class="tool-list-row"><div class="tool-list-val">' + esc(t('mydash.bm.noMatch')) + '</div></div>';
-      const rest = units.length - shown;
-      moreEl.style.display = rest > 0 ? '' : 'none';
-      if (rest > 0) moreBtn.textContent = t('mydash.bm.more', { n: rest });
+        '<div class="tool-list-row"><div class="tool-list-val">' +
+          esc(t('mydash.bm.noMatch', undefined, '조건에 맞는 것이 없습니다')) +
+          '</div></div>';
+      const restUnits = units.length - shown;
+      const restItems = units.slice(shown).reduce((n, u) => n + u.items.length, 0);
+      moreEl.style.display = restUnits > 0 ? '' : 'none';
+      if (restUnits > 0) {
+        moreBtn.textContent = t(
+          'mydash.bm.more',
+          { n: restItems, m: restUnits },
+          '더 보기 항목 {n} (묶음 {m})'
+        );
+      }
     }
 
     wrap.addEventListener('click', (ev) => {

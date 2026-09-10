@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
-import { collect } from './build-memo-atlas.mjs';
+import { collect, collectBookmarksAll } from './build-memo-atlas.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
@@ -49,7 +49,10 @@ if (ageDays > MAX_AGE_DAYS) {
 
 let live = null;
 try {
-  live = collect().length;
+  /* **자가 굽기와 같은 집합을 세야 한다**. 실제 굽기(build-memo-atlas.mjs)는
+     collect() 에 collectBookmarksAll() 을 더한 걸 지도에 담는다. 여기서 collect() 만
+     세면 북마크 수만큼 항상 격차가 나서 게이트가 늘 빨갛다. */
+  live = collect().length + collectBookmarksAll().length;
 } catch (e) {
   console.log(`[atlas-fresh] 지금 글 수를 못 셌다 (${e.message}). 날짜만 보고 넘어간다`);
 }
