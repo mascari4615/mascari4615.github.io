@@ -1,4 +1,4 @@
-.ac-character-lobby{--ac-home-text:#eee9e3;--ac-home-muted:#d6c4cc;--ac-home-gold:#d8a4b8;position:relative;isolation:isolate;display:block;min-height:640px;height:calc(100svh - 100px);padding:32px 4%;overflow:hidden;background:#191522 url('/apps/karmolab/img/arcade/lobby-background.png') center/cover;font-family:system-ui,sans-serif;color:#eee9e3}
+﻿.ac-character-lobby{--ac-home-text:#eee9e3;--ac-home-muted:#d6c4cc;--ac-home-gold:#d8a4b8;position:relative;isolation:isolate;display:block;min-height:640px;height:calc(100svh - 100px);padding:32px 4%;overflow:hidden;background:#191522 url('/apps/karmolab/img/arcade/lobby-background.png') center/cover;font-family:system-ui,sans-serif;color:#eee9e3}
 .ac-character-lobby:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#14132210 20%,#14132230 55%,#141322a0),linear-gradient(0deg,#10121fd9,transparent 40%);z-index:-1;pointer-events:none}
 .ac-character-lobby .ac-homechar{position:absolute;inset:5% 42% 0 -7%;min-height:0;pointer-events:none;z-index:-1}
 .ac-character-lobby .ac-homebody{position:absolute;inset:0;border:0;border-radius:0;background:url('/apps/karmolab/img/arcade/lobby-character.png') center bottom/contain no-repeat;filter:brightness(.82)}
@@ -49,3 +49,29 @@
 .ac-lobby-music{background:#211a28aa;color:#efdce5;border:1px solid #b895a866;padding:7px 12px;cursor:pointer;font:11px monospace}
 .ac-character-lobby{height:var(--ac-lobby-height,640px);min-height:480px}.ac-character-lobby .ac-homechar{height:95%;align-self:auto}.ac-character-lobby .ac-feature{height:clamp(200px,calc(var(--ac-lobby-height,640px)*.5),440px)}
 @media(max-width:680px){.ac-character-lobby{height:auto;min-height:850px}.ac-character-lobby .ac-homechar{height:420px}.ac-character-lobby .ac-homesay{display:none}.ac-character-lobby .ac-feature{height:245px}}
+.ac-root{position:relative;min-width:0;min-height:0;overflow:hidden}
+.main-content:has(#page-arcade.active){overflow:hidden}
+.ac-entry-mode{color:var(--accent);font-weight:600}
+.ac-entry-rooms{margin-top:20px;break-inside:avoid}
+.ac-entry-roomhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ac-entry-roomhead[hidden]{display:none}
+.ac-entry-roomhead h4{margin:0}
+.ac-entry-roomlist{display:flex;flex-wrap:wrap;gap:8px}
+.ac-entry-roomlist button{max-width:100%;overflow-wrap:anywhere;text-align:left}
+.ac-entry-code{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-top:14px}
+.ac-entry-code label{display:grid;gap:6px;min-width:0;flex:1}
+.ac-entry-code input{width:100%;min-width:0}
+#page-arcade.layout-full.active{display:flex;flex-direction:column;min-height:0}
+#page-arcade.layout-full.active>.tab-panel.active{display:flex;flex-direction:column;min-height:0}
+@media(max-width:768px){.content-body:has(#page-arcade.layout-full.active){padding:0;min-height:0;overflow:hidden}}
+.ac-root #acLobby:has(.ac-approved-lobby){position:absolute;inset:0;min-width:0;min-height:0;overflow:hidden}
+.ac-approved-lobby{display:block;position:absolute;inset:0;width:100%;height:100%;padding:0!important;min-height:0!important;background:#171320!important;overflow:hidden}
+.ac-approved-lobby> :not(.ac-approved-frame){display:none!important}
+.ac-approved-lobby .ac-approved-frame{display:block;width:100%;height:100%;border:0;min-height:0;background:#171320}
+.ac-root #acDetail.ac-paged-screen,.ac-root #acWait.ac-paged-screen{height:100%;min-height:0;max-height:100%;padding:16px;box-sizing:border-box;overflow:clip;flex-direction:column;gap:12px}
+.ac-root .ac-paged-screen:not([style*="display: none"]){display:flex}
+.ac-pages-window{flex:1;min-height:0;min-width:0;overflow:clip}
+.ac-pages-flow{height:100%;column-fill:auto;column-gap:24px}
+.ac-pages-flow button,.ac-pages-flow .ac-setrow,.ac-pages-flow input,.ac-pages-flow p{break-inside:avoid}
+.ac-pages-nav{height:40px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:16px;border-top:1px solid var(--border)}
+.ac-pages-nav button{border:0;background:none;color:inherit;padding:6px 15px;cursor:pointer}.ac-pages-nav button:disabled{opacity:.3}

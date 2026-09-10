@@ -235,3 +235,6 @@ apps/files/.upload-*.log
 
 # 개발 서버 로그. 레인마다 생기고 커밋할 것이 아니다
 dev.log
+
+# Local illustration previews, outside application deployment inputs.
+/.local/arcade-art/

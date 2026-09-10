@@ -15,6 +15,7 @@ import { DEFAULT_SIZE, starPoints, type GomokuState, type GomokuAction } from '.
 export const gomokuView: GameView<GomokuState, GomokuAction> = {
   id: 'gomoku',
   bare: true,
+  table: true,
   mount(el, act) {
     /* 판 크기는 시작할 때 정해진다. 첫 그림이 올 때까지는 표준 줄 수로 세워 둔다 */
     let n = 0;

@@ -2,6 +2,8 @@ import { t } from '../../lib/i18n';
 import type { GameCard } from './catalog-meta.generated';
 import { iconOf } from './meta';
 import { mountLobbyMusic } from './lobby-music';
+import { mountApprovedLobby } from './approved-lobby';
+import { LobbyRun } from './lobby';
 
 const painted = new Set(['gomoku', 'yacht', 'solitaire', 'reversi', 'four', 'checkers', 'blackjack', 'snake', 'pong', 'airhockey']);
 const escape = (value: string): string => value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
@@ -12,9 +14,11 @@ function artwork(game: GameCard): string {
     : '<div class="ac-cover-fallback" aria-hidden="true">' + iconOf(game.id) + '</div>';
 }
 
-export function mountCharacterLobby(home: HTMLElement, cards: GameCard[], enter: (id: string) => void, signal: AbortSignal): { refresh: () => void } {
+export function mountCharacterLobby(home: HTMLElement, cards: GameCard[], enter: (id: string, mode?: 'solo' | 'multi') => void, signal: AbortSignal): { refresh: () => void } {
+  if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return mountApprovedLobby(home, cards, enter, signal);
   const games = home.querySelector<HTMLElement>('#acGames')!;
-  let selected = cards[0];
+  const history = new LobbyRun();
+  let selected = cards.find(card => card.id === history.recent()[0]) || cards[0];
   let query = '';
   home.classList.add('ac-character-lobby');
   const fit = (): void => {
@@ -39,6 +43,7 @@ export function mountCharacterLobby(home: HTMLElement, cards: GameCard[], enter:
   home.append(dialog);
   const start = games.querySelector<HTMLButtonElement>('.ac-enter')!;
   const open = games.querySelector<HTMLButtonElement>('.ac-library-open')!;
+  open.textContent = t('arcade.lobby.play');
   function refresh(): void {
     if (!selected) { start.disabled = true; return; }
     games.querySelector('.ac-feature-art')!.innerHTML = artwork(selected);
@@ -46,6 +51,7 @@ export function mountCharacterLobby(home: HTMLElement, cards: GameCard[], enter:
     games.querySelector('.ac-feature-copy small')!.textContent = selected.id.toUpperCase();
     games.querySelector('.ac-feature-copy p')!.textContent = t('arcade.game.' + selected.id + '.desc');
     start.dataset.obj = selected.id;
+    start.querySelector('span')!.textContent = nameOf(selected) + ' / ' + t('arcade.lobby.play');
     start.setAttribute('aria-label', nameOf(selected) + ' / ' + t('arcade.lobby.play'));
   }
   function list(): void {
@@ -56,7 +62,7 @@ export function mountCharacterLobby(home: HTMLElement, cards: GameCard[], enter:
       button.dataset.game = game.id;
       button.setAttribute('aria-pressed', String(game === selected));
       button.innerHTML = artwork(game) + '<span><small>' + escape(game.id.toUpperCase()) + '</small><b>' + escape(nameOf(game)) + '</b></span>';
-      button.addEventListener('click', () => { selected = game; refresh(); dialog.close(); });
+      button.addEventListener('click', () => { selected = game; refresh(); dialog.close(); enter(game.id); });
       return button;
     }));
     dialog.querySelector<HTMLElement>('.ac-library-empty')!.hidden = filtered.length > 0;

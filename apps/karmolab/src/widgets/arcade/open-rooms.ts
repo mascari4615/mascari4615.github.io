@@ -23,16 +23,23 @@ export interface OpenRoom {
   playing?: boolean;
 }
 
-/** 지금 열린 방들. 못 물어보면 **빈 목록**. 로비가 그 때문에 멈추면 안 된다. */
-export async function listRooms(): Promise<OpenRoom[]> {
+/** 공개 방 조회. 빈 목록과 연결 실패(null) 구분, 화면 이탈과 8초 제한 시 요청 중단 */
+export async function readRooms(signal?: AbortSignal): Promise<OpenRoom[] | null> {
   try {
-    const res = await fetch(`${HOST}/kl/arcade/rooms`, { cache: 'no-store' });
-    if (!res.ok) return [];
+    const timeout = AbortSignal.timeout(8000);
+    const res = await fetch(`${HOST}/kl/arcade/rooms`, { cache: 'no-store', signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
+    if (!res.ok) return null;
     const body = (await res.json()) as { rooms?: OpenRoom[] };
-    return Array.isArray(body.rooms) ? body.rooms : [];
+    if (!Array.isArray(body.rooms)) return null;
+    return body.rooms.filter(r => r && typeof r.code === 'string' && typeof r.game === 'string' && typeof r.host === 'string');
   } catch {
-    return [];
+    return null;
   }
+}
+
+/** 기존 로비 호출부의 빈 목록 대체 계약 유지 */
+export async function listRooms(): Promise<OpenRoom[]> {
+  return (await readRooms()) ?? [];
 }
 
 export interface Held {

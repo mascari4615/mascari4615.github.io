@@ -1,0 +1,28 @@
+html,body{width:100%;height:100%;overflow:clip;overscroll-behavior:none}
+body:not(.composition-home) .app{height:100%;min-height:0;display:grid;grid-template-rows:82px minmax(0,1fr);overflow:clip}
+body:not(.composition-home) header{height:82px;min-height:0;margin:0;padding:12px 4%;flex-wrap:nowrap}
+body:not(.composition-home) #screen{min-height:0;height:100%;overflow:clip;position:relative}
+body:not(.composition-home) .review{display:none}
+#screen>.page{height:100%;min-height:0;max-width:none;padding:12px 4%;display:flex;flex-direction:column;gap:12px}
+.page .page-head{flex:none;margin:0;padding:0 0 10px}.page-head h1{font-size:clamp(23px,3vw,36px);margin:3px 0}
+.screen-pages{position:relative;flex:1;min-height:0;min-width:0;overflow:clip}
+.screen-pages-flow{height:100%;column-fill:auto;column-gap:24px;column-width:var(--page-width);transition:transform .15s;overflow:visible}
+.screen-pages-flow>.columns,.screen-pages-flow>.bg-controls{display:contents}
+.screen-pages-flow .panel,.screen-pages-flow .story{margin:0 0 16px;max-width:none;padding:20px;break-inside:auto}
+.screen-pages-flow p,.screen-pages-flow button,.screen-pages-flow .row,.screen-pages-flow .bg-choice,.screen-pages-flow .castgrid,.screen-pages-flow label,.screen-pages-flow input{break-inside:avoid}
+.screen-pages-flow h2,.screen-pages-flow label{break-after:avoid}
+.screen-pages-flow .bg-grid{grid-template-columns:1fr 1fr;margin:0 0 16px}.screen-pages-flow .bg-choice img{max-height:150px}
+.screen-pages-flow .pullgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.screen-pages-flow .castgrid{gap:8px}.screen-pages-flow .sigil{max-height:90px}
+.screen-pager{display:flex;flex:none;align-items:center;justify-content:flex-end;gap:20px;height:40px;border-top:1px solid #bda16c44}
+.screen-pager button{padding:4px 16px;border:0;background:transparent;font-size:21px}.screen-pager output{font:12px monospace;color:#d8be95}
+body[data-screen=wardrobe] .wardrobe{height:100%;min-height:0;position:relative;overflow:clip}
+.wardrobe .wardrobe-title{position:absolute;top:10px;left:4%;z-index:2}.wardrobe-title h1{font-size:26px;margin:4px 0}.wardrobe-title button{padding:5px 10px}
+.wardrobe .cast-rail{position:absolute;left:4%;top:115px;bottom:auto;gap:12px;z-index:3}
+.wardrobe .dress-portrait{position:absolute;left:3%;top:170px;bottom:0;width:44%;height:auto}
+.wardrobe .dress-portrait img{width:100%;height:100%;object-fit:contain}
+.wardrobe .dress-portrait>button{bottom:10px;left:10%;max-width:90%;padding:7px}
+.wardrobe .dress-info{position:absolute;inset:12px 4% 12px 52%;margin:0;padding:0;display:flex;flex-direction:column;min-height:0}
+.dress-info>.screen-pages{width:100%}.dress-info h2{font-size:32px;margin:4px 0}.dress-info p{margin:6px 0}.dress-info .skin-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0;break-inside:avoid}.skin-choices img{height:clamp(75px,22vh,180px)!important}.dress-info .dress-actions{display:grid;gap:8px;margin:12px 0}.dress-info .dress-actions button{padding:10px;font-size:12px}.dress-info .wardrobe-note{display:block;line-height:1.5}
+dialog{overflow:clip;max-height:95%;box-sizing:border-box}dialog.art-lightbox{height:95%;display:flex;flex-direction:column}dialog.art-lightbox:not([open]){display:none}dialog.art-lightbox img{height:calc(100% - 48px);min-height:0;object-fit:contain}.summon-stage .summon-envelope{height:min(45vh,330px);width:min(36vh,270px)}.summon-stage .summon-intro{padding-top:10vh}.summon-intro h1{margin-bottom:15px}.summon-envelope b{margin:15px}.summon-intro>p{margin-top:10px}
+@media(max-width:700px){body:not(.composition-home) .app{grid-template-rows:64px minmax(0,1fr)}body:not(.composition-home) header{height:64px;padding:8px 4%;gap:6px}.profile{min-width:0!important}.profile small,.profile progress{display:none}.currency{padding:0!important;gap:8px!important}.currency>span{font-size:0}.currency b{font-size:12px}.currency button{padding:4px}.profile .avatar{width:32px;height:32px}.profile strong{font-size:12px}#screen>.page{padding:8px 4%;gap:8px}.screen-pages-flow .panel{padding:14px}.screen-pages-flow .bg-grid{grid-template-columns:1fr}.wardrobe .wardrobe-title{top:6px}.wardrobe-title h1{font-size:21px}.wardrobe-title .brand-overline{display:none}.wardrobe .cast-rail{top:75px;gap:8px}.wardrobe .rail-portrait{width:38px;height:38px}.wardrobe .dress-portrait{top:120px;left:-12%;width:59%}.wardrobe .dress-info{inset:125px 4% 8px 45%}.dress-info h2{font-size:25px}.dress-info .skin-choices{grid-template-columns:1fr}.skin-choices button{display:grid;grid-template-columns:54px 1fr;align-items:center;text-align:left;padding:4px}.skin-choices img{width:54px;height:74px!important;grid-row:span 2}.skin-choices small,.skin-choices b{padding:2px;font-size:9px}.dress-info .skin-choices{break-inside:auto}.skin-choices button{break-inside:avoid}.wardrobe .dress-portrait>button{font-size:9px;left:25%}}
+@media(prefers-reduced-motion:reduce){.screen-pages-flow{transition:none}}

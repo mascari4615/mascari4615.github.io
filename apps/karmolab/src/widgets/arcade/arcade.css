@@ -269,7 +269,7 @@
 #acPlay.ac-bare:has(.ac-t3room) .ac-cutin .ac-cutface svg{width:150px;height:150px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
 #acPlay.ac-bare:has(.ac-t3room) .ac-cutin b{display:block;font-size:17px;letter-spacing:.12em;color:#ffd696;font-weight:600;margin-bottom:6px}
 #acPlay.ac-bare:has(.ac-t3room) .ac-cutin p{margin:0;font-size:22px;line-height:1.35;text-shadow:0 2px 10px rgba(0,0,0,.6)}
-#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}
+#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:var(--ac-roomfill-bottom,0px);width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}
 #acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}
 #acPlay.ac-roomfill #acView{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none}
 #acPlay.ac-roomfill #acView>*{margin:0}
@@ -286,15 +286,17 @@
 /* 네모 판은 폭에 갇혀 세로가 남으면 위에 붙어 아래가 비었다 (2026-09-05 실측: 390x844 에서 판 344, 칸 756)
    남을 때만 가운데로. 넘칠 때는 위부터 (safe). 폭을 줄여 다 담으면 폰 가로에서 칸이 27px 이 되어 못 누른다 (실측)
    칸을 다 쓰는 것이 먼저라는 결정은 [놀이 화면이 지켜야 할 셋] */
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-goban{display:flex;flex-direction:column;justify-content:safe center}
+#acPlay.ac-roomfill #acView:has(>.ac-goban){container-type:size;overflow:hidden;bottom:0;height:100%}
+#acPlay.ac-roomfill #acView>.ac-goban{display:flex;align-items:center;justify-content:center;padding:100px 16px;overflow:hidden}
+#acPlay.ac-roomfill #acView>.ac-goban>.ac-board{flex:none;width:min(calc(100cqw - 32px),calc(100cqh - 200px));height:auto;max-width:100%;aspect-ratio:1}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView .ac-clbar{margin-top:8px}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}
+#acPlay.ac-roomfill:not(.ac-table):not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}
 /* 조작 줄은 한 줄. 좁으면 옆으로 굴린다 (2026-09-05 실측: 390 폭에서 버튼이 눌려 30x100 이 되고 그만이 화면 밖 27px)
    버튼을 안 줄이고(flex 0 0 auto) 글자도 안 꺾는다. 판이 한 화면에 들어가는 것이 먼저 */
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:safe center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls::-webkit-scrollbar{display:none}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls>.btn{flex:0 0 auto;white-space:nowrap}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:48px;z-index:8;margin:0}
+#acPlay.ac-roomfill:not(.ac-table):not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:safe center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+#acPlay.ac-roomfill:not(.ac-table):not(:has(.ac-t3room)) #acControls::-webkit-scrollbar{display:none}
+#acPlay.ac-roomfill:not(.ac-table):not(:has(.ac-t3room)) #acControls>.btn{flex:0 0 auto;white-space:nowrap}
+#acPlay.ac-roomfill:not(.ac-table):not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:48px;z-index:8;margin:0}
 #acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}
 #acPlay.ac-roomfill .ac-intro{border-radius:0}
 #acPlay.ac-roomfill .ac-over{border-radius:0}

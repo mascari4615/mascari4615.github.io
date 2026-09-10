@@ -23,6 +23,7 @@
 import arcadeCss from './arcade.css';
 import characterLobbyCss from './character-lobby.css';
 import { mountCharacterLobby } from './character-lobby';
+import { mountScreenPages } from './screen-pages';
 import { t, loadNamespace } from '../../lib/i18n';
 import { CARDS, cardById } from './catalog-meta.generated';
 import { SETUPS, optsFor, chooseOpt } from './setups';
@@ -50,6 +51,7 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
+import { mountRoomPicker } from './room-picker';
 import {
   enterQueue,
   gradeOf,
@@ -120,7 +122,7 @@ interface Session {
       undefined,
       '여러 미니게임을 혼자서도 여럿이서도 합니다. 사람이 모자란 자리는 봇이 앉습니다'
     ),
-    layout: 'wide',
+    layout: 'full',
     noHero: true,
     icon: '<rect x="3" y="7" width="18" height="12" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 11v4M6 13h4M15 12.5h.01M17.5 15h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
@@ -340,6 +342,9 @@ interface Session {
       const k = scale > 0.05 ? scale : 1;
       play.style.setProperty('--ac-roomfill-y', `${Math.round((head?.bottom ?? 0) / k)}px`);
       play.style.setProperty('--ac-roomfill-x', `${Math.round(left / k)}px`);
+      const bottom = side && side.width > window.innerWidth * 0.5 && side.top > window.innerHeight * 0.5
+        ? Math.max(0, window.innerHeight - side.top) : 0;
+      play.style.setProperty('--ac-roomfill-bottom', `${Math.round(bottom / k)}px`);
     };
     const fill = (on: boolean): void => {
       if (on) fillVars();
@@ -349,8 +354,15 @@ interface Session {
       if (play.classList.contains('ac-roomfill')) fillVars();
     };
     window.addEventListener('resize', onFillResize, dying);
+    // 반응형 셸 배치 확정 후 좌표 재측정. resize 이벤트 시점의 이전 좌표 방지
+    const fillSize = new ResizeObserver(onFillResize);
+    for (const element of [document.querySelector('.main-content'), document.getElementById('headerBar'), document.getElementById('sidebar')]) {
+      if (element) fillSize.observe(element);
+    }
+    gone.signal.addEventListener('abort', () => fillSize.disconnect(), { once: true });
 
     const show = (which: 'lobby' | 'wait' | 'play'): void => {
+      if (which !== 'lobby') detailLifetime?.abort();
       lobby.style.display = which === 'lobby' ? '' : 'none';
       wait.style.display = which === 'wait' ? '' : 'none';
       play.style.display = which === 'play' ? '' : 'none';
@@ -369,10 +381,16 @@ interface Session {
      * 물건을 집으면. 진열장이 접히고 그 물건이 탁자 가운데로 온다.
      * 시작 단추의 data-* 는 카드 시절 그대로다(`wireCards`, 화면 검사가 같은 이름을 본다).
      */
-    function openDetail(id: string): void {
+    let detailLifetime: AbortController | null = null;
+    gone.signal.addEventListener('abort', () => detailLifetime?.abort(), { once: true });
+    function openDetail(id: string, mode?: 'solo' | 'multi'): void {
       /* 감춘 놀이도 주소로 들어오면 열린다. 그래서 로비 목록이 아니라 전체 명패에서 찾는다 */
       const g = cardById(id);
       if (!g) return;
+      detailLifetime?.abort();
+      detailLifetime = new AbortController();
+      const solo = mode !== 'multi';
+      const multi = mode !== 'solo';
       /* 번호는 로비에 보이는 차례. 감춘 놀이는 번호가 없다 */
       const no = CARDS.indexOf(g) + 1;
       const [min, max] = g.seats;
@@ -394,6 +412,7 @@ interface Session {
         '<div class="ac-dface">' + iconOf(g.id) + '</div>' +
         '<div class="ac-dinfo">' +
         '<h3>' + (no > 0 ? '<i>' + no + '</i>' : '') + esc(t('arcade.game.' + g.id + '.name')) + '</h3>' +
+        (mode ? '<p class="ac-entry-mode">' + esc(t('arcade.entry.' + mode)) + '</p>' : '') +
         '<p>' + esc(t('arcade.game.' + g.id + '.desc')) + '</p>' +
         '<div class="ac-dmeta">' +
         '<span>' + esc(t('arcade.seats', { min: String(min), max: String(max) })) + '</span>' +
@@ -403,24 +422,26 @@ interface Session {
         '">' + esc(t('arcade.len.' + lengthOf(g.id))) + '</span>' +
         (bestOf(g.id) ? '<span>🏅 ' + esc(t('arcade.best.card', { n: String(bestOf(g.id)?.score ?? 0) })) + '</span>' : '') +
         '</div>' +
-        setupRow(g.id) +
+        setupRow(g.id, mode) +
         '<div class="ac-go">' +
-        '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
-        '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
-        (supportsRanked(g.id, g.seats)
+        (solo ? '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' : '') +
+        (multi ? '<button data-host="' + g.id + '">' + esc(t('arcade.entry.create')) + '</button>' : '') +
+        (multi && supportsRanked(g.id, g.seats)
           ? '<button data-rank="' + g.id + '">' + esc(t('arcade.btn.rank')) + '</button>'
           : '') +
         /* 배우기(`tutor.ts`)는 처음 온 사람의 길이라 밑줄 글자가 아니라 버튼으로. 지금은 오목만 */
-        (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
+        (solo && g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
         '</div>' +
-        (supportsRanked(g.id, g.seats) ? '<div class="ac-grade" id="acGrade"></div>' : '') +
+        (multi && supportsRanked(g.id, g.seats) ? '<div class="ac-grade" id="acGrade"></div>' : '') +
         '<div class="ac-past" id="acPast" hidden></div>' +
-        '<div class="ac-more">' + more + '</div>' +
+        (multi ? '<div class="ac-more">' + more + '</div>' : '') +
+        (mode === 'multi' ? '<section class="ac-entry-rooms" id="acEntryRooms"></section>' : '') +
         '</div></div>';
       $<HTMLElement>('#acShelfAll').style.display = 'none';
       d.style.display = '';
       wireCards();
-      wireSetup(g.id);
+      wireSetup(g.id, mode);
+      if (mode === 'multi') mountRoomPicker($<HTMLElement>('#acEntryRooms'), id, code => { remember(); joinRoomAs(code); }, detailLifetime.signal);
       void paintGrade(g.id);
       void paintPast(g.id);
       const back = container.querySelector<HTMLButtonElement>('#acBack');
@@ -431,13 +452,13 @@ interface Session {
      * 시작 전에 고르는 줄. **껍데기는 무엇을 고르는지 모른다** (`setups.ts` 가 정본).
      * 고를 게 없는 놀이는 빈 글자라 아무 자리도 안 차지함
      */
-    function setupRow(id: string): string {
+    function setupRow(id: string, mode?: 'solo' | 'multi'): string {
       const choices = SETUPS[id];
       if (!choices) return '';
       const now = optsFor(id);
       return (
         '<div class="ac-setup">' +
-        choices
+        choices.filter(choice => mode !== 'multi' || choice.key !== 'ai')
           .map(
             (c) =>
               '<div class="ac-setrow"><b>' + esc(t(c.label)) + '</b><div class="ac-setpick">' +
@@ -458,7 +479,7 @@ interface Session {
     }
 
     /** 고른 값을 적고 그 줄만 다시 그린다. 판을 다시 열면 사람이 어디였는지 잊는다 */
-    function wireSetup(id: string): void {
+    function wireSetup(id: string, mode?: 'solo' | 'multi'): void {
       container.querySelectorAll<HTMLButtonElement>('#acDetail button[data-set]').forEach((b) => {
         b.onclick = () => {
           const key = b.dataset.setkey as string;
@@ -466,17 +487,20 @@ interface Session {
           const value: number | boolean = raw === 'true' ? true : raw === 'false' ? false : Number(raw);
           chooseOpt(id, key, value);
           const box = container.querySelector<HTMLElement>('#acDetail .ac-setup');
-          if (box) box.outerHTML = setupRow(id);
-          wireSetup(id);
+          if (box) box.outerHTML = setupRow(id, mode);
+          wireSetup(id, mode);
         };
       });
     }
 
     function closeDetail(): void {
+      detailLifetime?.abort();
+      detailLifetime = null;
       const d = $<HTMLElement>('#acDetail');
       d.style.display = 'none';
       d.innerHTML = '';
       $<HTMLElement>('#acShelfAll').style.display = '';
+      characterLobby.refresh();
     }
 
     function remember(): void {
@@ -550,6 +574,7 @@ interface Session {
     };
 
     const characterLobby = mountCharacterLobby($<HTMLElement>('#acShelfAll'), CARDS, openDetail, gone.signal);
+    mountScreenPages(container, gone.signal);
     const paintGames = (): void => characterLobby.refresh();
 
     paintGames();

@@ -1,0 +1,67 @@
+﻿/* All lobby layers share one 1672 x 941 design coordinate system. */
+body.composition-home{overflow:hidden;background:#100d15}
+.composition-home.live-home .app{position:fixed;left:50%;top:calc((100% - 30px)/2);width:1672px;height:941px;min-height:0;max-width:none;margin:0;padding:0;transform:translate(-50%,-50%) scale(var(--composition-scale,1));transform-origin:center;background:var(--scene) center/cover no-repeat}
+.composition-home.live-home .app:before,.composition-home.live-home .app:after{display:none}
+.composition-home.live-home header{position:absolute;inset:0 0 auto;height:135px;min-height:0;padding:20px 28px;display:flex;flex-wrap:nowrap;gap:15px;align-items:flex-start}
+.composition-home.live-home .profile{min-width:305px;gap:16px;padding:8px 18px 8px 8px;border:2px solid #b49362;border-radius:8px;clip-path:none}
+.composition-home.live-home .profile .avatar{width:85px;height:85px}
+.composition-home.live-home .profile strong{font-size:24px}
+.composition-home.live-home .profile small{font-size:12px}
+.composition-home.live-home .currency{gap:20px;border-radius:30px;padding:8px 20px;font-size:15px}
+.composition-home.live-home .currency b{font-size:22px}
+.composition-home .live-lobby{width:1672px;height:941px;min-height:0}
+.composition-home .live-character{height:1320px;width:880px;max-width:none;left:-25px;top:-15px;object-fit:contain;mask-image:none}
+.composition-home .live-play-zone{left:920px;right:auto;top:166px;width:620px}
+.composition-home .live-play{height:365px;aspect-ratio:auto}
+.composition-home .live-play>img{object-fit:fill}
+.composition-home .live-play>strong{font-size:73px;top:39%;letter-spacing:3px;font-style:italic}
+.composition-home .live-play>span{font-size:14px;top:76%;text-align:center}
+.composition-home .live-recent{width:530px;height:151px;margin:0 0 0 40px;padding:9px 17px;border:5px double #99714e;background:linear-gradient(115deg,#342a2ee8,#171721f5);gap:3px 18px;grid-template-columns:160px 1fr 20px;border-radius:8px;box-shadow:0 0 0 5px #211b26,0 10px 0 #110f19}
+.composition-home .live-recent>small{font-size:18px;padding-bottom:3px}
+.composition-home .live-recent>img{height:80px}
+.composition-home .live-recent b{font-size:27px}
+.composition-home .live-recent em{font-size:14px}
+.composition-home .live-dialogue{left:35px;top:490px;width:340px;background:none;padding:10px}
+.composition-home .live-dialogue>b{font-size:49px}
+.composition-home .live-dialogue p{font-size:20px;margin-top:8px}
+.composition-home .live-event{left:46px;top:712px;bottom:auto;width:463px}
+.composition-home .live-event-card{height:139px;border:4px double #c3a275;background:linear-gradient(110deg,#463047ed,#221829ec)}
+.composition-home .live-event-card strong{font-size:29px}
+.composition-home .live-event-card small{font-size:14px;margin-top:10px}
+.composition-home .live-event>nav{margin-top:8px}
+.composition-home .live-dock{left:854px;right:auto;bottom:47px;width:775px;gap:17px}
+.composition-home .live-icon{width:145px;height:145px}
+.composition-home .live-icon-face{width:112px;height:112px;margin-bottom:18px}
+.composition-home .live-dock strong{font-size:29px}
+.composition-home .live-background>span{font-size:45px}
+.composition-home .live-background>strong{font-size:17px}
+.composition-home .live-motion{bottom:7px;font-size:11px}
+.composition-home .live-foreground{display:none}
+.composition-home .live-foreground.has-matched-foreground{display:block}
+.composition-home .live-table-art{width:100%;height:100%;object-fit:cover;object-position:center;left:0;top:0;bottom:auto}
+.composition-home .review{z-index:100;font-size:11px}
+/* Responsive anchors: fill the viewport; scale HUD groups, never the whole scene. */
+.composition-home.live-home .app{inset:0;width:100%;height:100svh;transform:none;background-size:cover;background-position:center}
+.composition-home .review{background:transparent;pointer-events:none}
+.composition-home .review button{pointer-events:auto;background:#17111bb3}
+.composition-home .live-motion{bottom:32px}
+.composition-home .live-lobby{width:100%;height:100%;min-height:0}
+.composition-home #screen{height:100%}
+.composition-home.live-home header{height:auto;padding:0;inset:0;pointer-events:none}
+.composition-home.live-home header>button,.composition-home.live-home header>.currency{pointer-events:auto;position:absolute;top:20px;transform:scale(var(--ui-scale));}
+.composition-home.live-home header>.profile{left:3%;transform-origin:top left}
+.composition-home.live-home header>.currency{right:3%;transform-origin:top right}
+.composition-home .live-character{height:140%;width:auto;max-width:none;left:0;top:-1.5%;object-fit:contain}
+.composition-home .live-play-zone{left:auto;right:7%;top:17%;width:620px;transform:scale(var(--ui-scale));transform-origin:top right}
+.composition-home .live-dock{left:auto;right:3%;bottom:5%;width:775px;transform:scale(var(--ui-scale));transform-origin:bottom right}
+.composition-home .live-event{left:3%;top:auto;bottom:10%;width:463px;transform:scale(var(--ui-scale));transform-origin:bottom left}
+.composition-home .live-dialogue{left:3%;top:54%;transform:scale(var(--ui-scale));transform-origin:top left}
+@media(max-aspect-ratio:6/5){
+ .composition-home .live-character{height:100%;left:-20%;top:0}
+ .composition-home .live-play-zone{top:39%;right:4%;transform:scale(var(--portrait-play-scale))}
+ .composition-home .live-dialogue{top:33%;transform:scale(.65)}
+ .composition-home .live-event{bottom:145px;transform:scale(.55)}
+ .composition-home .live-dock{right:4%;bottom:35px;transform:scale(var(--portrait-menu-scale))}
+ .composition-home.live-home header>.profile{transform:scale(.65);left:12px;top:10px}
+ .composition-home.live-home header>.currency{transform:scale(.65);top:94px;right:12px;flex-wrap:nowrap;width:max-content;white-space:nowrap}
+}
