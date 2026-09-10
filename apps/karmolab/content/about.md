@@ -1,6 +1,6 @@
 ---
 title: 소개
-last_modified_at: 2026-09-08T00:00:00+09:00
+last_modified_at: 2026-09-10T00:00:00+09:00
 ---
 
 ![카모뜨린 로고](/assets/img/profile/star-transparent.png)
@@ -35,36 +35,35 @@ last_modified_at: 2026-09-08T00:00:00+09:00
 
 ## 경력
 
-- **[Game Spring](https://gamespring.co.kr/)**\
+- <span data-record="career-main"></span>
+  **[Game Spring](https://gamespring.co.kr/)**\
   유니티 클라이언트 프로그래머\
   2025.03 ~, IT 산업기능요원
-- **[패러블 엔터테인먼트](https://parable-asia.com/)**\
+- <span data-record="career-contract"></span>
+  **[패러블 엔터테인먼트](https://parable-asia.com/)**\
   VRChat 월드 프로그래밍, 프로젝트 계약
-- **VRChat 콘텐츠 제작**\
+- <span data-record="career-world"></span>
+  **VRChat 콘텐츠 제작**\
   2022.02 ~, Unity U# (C# + VRChat SDK)\
   [Woodon](https://github.com/wrchat/Woodon) 스크립트, 프리팹 라이브러리
-
-<details>
-<summary>참여 프로젝트, 개인 개발</summary>
-
-- SM 엔터테인먼트 산하 레이블 ScreaM, SOOP(前 AfreecaTV), 카카오 엔터테인먼트 주관 프로젝트 참여
-- [마녀: 귀찮아!](https://github.com/mascari4615/Witch-Mendokusai), 2023.06 ~
-- [왁그리드](https://github.com/mascari4615/Wakgreed), 탑뷰 2D 로그라이크
-- 개인 게임 둘 다 Public 저장소 공개. 개인 제작 리소스와 재배포 가능한 오픈소스 리소스 사용
-
-</details>
+  <span class="related-record">
+  왁타버스 VRChat 맵 제작 스터디, 멘토 (2022.01 ~)</span>
 
 ## 학력, 수상
 
-- **[강릉원주대 컴퓨터공학](https://gwnucs.gwnu.ac.kr/sites/gwnucs/index.do)**\
+- <span data-record="education"></span>
+  **[강릉원주대 컴퓨터공학](https://gwnucs.gwnu.ac.kr/sites/gwnucs/index.do)**\
   학부 졸업, 2021.03 ~ 2025.03
-- **2021 우왁굳 연말공모전 게임 분야 3위**\
+  <span class="related-record">
+  GW Gaming 교내 게임 개발 동아리, 부리더와 프로그래머 (2024.03 ~ 2025.03)</span>
+- <span data-record="award-game"></span>
+  **2021 우왁굳 연말공모전 게임 분야 3위**\
   왁그리드
-- **2020 청강문화산업대학교 공모전 게임 분야 입상**\
+- <span data-record="award-school"></span>
+  **2020 청강문화산업대학교 공모전 게임 분야 입상**\
   Potion Factory
 
 ## 그 밖
 
-- GW Gaming 교내 게임 개발 동아리, 부리더와 프로그래머 (2024.03 ~ 2025.03)
-- 왁타버스 VRChat 맵 제작 스터디, 멘토 (2022.01 ~)
-- 옛 이름: Dan3478, 도순, Ttmdacl, 까모뜨린
+- <span data-record="names"></span>
+  옛 이름: Dan3478, 도순, Ttmdacl, 까모뜨린

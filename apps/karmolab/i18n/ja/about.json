@@ -1,5 +1,14 @@
 {
   "about.failed": "紹介を取得できませんでした",
-  "about.details": "経歴、学歴、活動を見る",
-  "about.works": "制作したもの"
+  "about.links": "個人リンク",
+  "about.projects": "プロジェクト",
+  "about.record": "制作記録",
+  "about.platforms": "プラットフォーム",
+  "about.profiles": "プロフィール",
+  "about.noImage": "画像なし",
+  "about.untitled": "タイトルなし",
+  "about.empty": "プロジェクトはまだありません。",
+  "about.collapse": "折りたたむ ↑",
+  "about.expand": "ほかの{count}件を見る ↗",
+  "about.viewProfile": "プロフィールを見る"
 }

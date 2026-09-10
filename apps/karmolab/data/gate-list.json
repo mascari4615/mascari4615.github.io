@@ -7,6 +7,9 @@
       "watch": [
         "src/widgets/about/**",
         "content/about.md",
+        "data/about-presentation.json",
+        "data/works.json",
+        "assets/about/**",
         "scripts/gen-post-pages.mjs",
         "scripts/smoke-about.mjs",
         "src/widgets-lazy-meta.ts",

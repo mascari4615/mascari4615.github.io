@@ -1,0 +1,23 @@
+{
+  "name": "KarmoDDrine",
+  "art": "/apps/karmolab/assets/about/room.jpg",
+  "artAlt": "직접 그린 흑백 인물 그림",
+  "linksSection": "링크",
+  "featured": ["rusuk-bar", "girls-reverse", "witch-mendokusai"],
+  "featuredLimit": 3,
+  "records": {
+    "career-main": {"image": "/apps/karmolab/assets/about/record-main.ico", "color": "#98b9b7", "background": "#243a40"},
+    "career-contract": {"image": "/apps/karmolab/assets/about/record-contract.webp", "color": "#b9b5a2", "background": "#353b37"},
+    "career-world": {"symbol": "/apps/karmolab/assets/about/world.svg", "color": "#a6b8a9", "background": "#293c38"},
+    "education": {"image": "/apps/karmolab/assets/about/education.png", "color": "#98b9b7", "background": "#243a40"},
+    "award-game": {"symbol": "/apps/karmolab/assets/about/trophy.svg", "color": "#b9b5a2", "background": "#353b37"},
+    "award-school": {"symbol": "/apps/karmolab/assets/about/potion.svg", "color": "#a6b8a9", "background": "#293c38"},
+    "names": {"symbol": "/apps/karmolab/assets/about/name.svg", "color": "#a6b8a9", "background": "#293c38"}
+  },
+  "profiles": [
+    {"title": "Steam", "handle": "Mascari4615", "url": "https://steamcommunity.com/id/Mascari4615", "icon": "/apps/karmolab/assets/about/steam.svg", "accent": "#8faebe"},
+    {"title": "VRChat", "handle": "", "url": "https://vrchat.com/home/user/usr_22099a07-e926-4751-85be-e5c9d528b28a", "icon": "/apps/karmolab/assets/about/vrchat.svg", "accent": "#adc3b1"},
+    {"title": "GitHub", "handle": "mascari4615", "url": "https://github.com/mascari4615", "icon": "/apps/karmolab/assets/about/github.svg", "accent": "#c7b8a6"},
+    {"title": "YouTube", "handle": "Mascari4615", "url": "https://www.youtube.com/@Mascari4615", "icon": "/apps/karmolab/assets/about/youtube.svg", "accent": "#c8a8a4"}
+  ]
+}

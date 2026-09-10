@@ -1,5 +1,14 @@
 {
   "about.failed": "Could not load the about page",
-  "about.details": "Experience, education, activities",
-  "about.works": "Selected work"
+  "about.links": "Personal links",
+  "about.projects": "Projects",
+  "about.record": "Work record",
+  "about.platforms": "Platforms",
+  "about.profiles": "Profiles",
+  "about.noImage": "No image",
+  "about.untitled": "Untitled",
+  "about.empty": "No projects yet.",
+  "about.collapse": "Show less ↑",
+  "about.expand": "Show {count} more projects ↗",
+  "about.viewProfile": "View profile"
 }

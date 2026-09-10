@@ -461,7 +461,7 @@ let worksLastmod = null;
 
 // 작업물. 전시 목록 정본 = apps/blog/_data/works.yml (큐레이션 순서 그대로, change.blog-finish ③).
 // 읽는 규칙, 흘린 이력 = scripts/lib/works-list.mjs. hidden 글도 목록에 있으면 의도된 전시다.
-// 그리는 쪽 = `src/widgets/about/works-view.ts`, 소개 장(/about/) 안의 한 절 (2026-09-08 사용자 결정.
+// 그리는 쪽: `src/widgets/about/projects.ts`, 소개 장(/about/) 안의 한 절 (2026-09-08 사용자 결정.
 // 옛 `/works/` 장 삭제, 리다이렉트 없음). 여기서는 그 보기가 읽을 원료(data/works.json)만 생성
 {
     const worksSrc = path.join(APP_ROOT, '..', 'blog', '_data', 'works.yml');

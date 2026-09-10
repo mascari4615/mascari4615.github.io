@@ -1,5 +1,14 @@
 {
   "about.failed": "소개를 못 받았습니다",
-  "about.details": "경력, 학력, 활동 보기",
-  "about.works": "만든 것"
+  "about.links": "개인 링크",
+  "about.projects": "프로젝트",
+  "about.record": "작업 기록",
+  "about.platforms": "플랫폼",
+  "about.profiles": "프로필",
+  "about.noImage": "이미지 없음",
+  "about.untitled": "제목 없음",
+  "about.empty": "등록된 프로젝트가 없습니다.",
+  "about.collapse": "접기 ↑",
+  "about.expand": "다른 프로젝트 {count}개 보기 ↗",
+  "about.viewProfile": "프로필 보기"
 }
