@@ -1,11 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fingerprint, compareFingerprints, findDuplicates } from './atlas-duplicates.mjs';
+import { fingerprint, compareFingerprints, findDuplicates, normalizeDuplicateBody } from './atlas-duplicates.mjs';
 
 const passage = (prefix, n = 120) => Array.from({ length: n }, (_, i) => `${prefix}${i}`).join(' ');
 const matches = (a, b) => compareFingerprints(fingerprint(a), fingerprint(b)).match;
 const alpha = passage('alpha');
 const beta = passage('beta');
+
+test('body deletion control excludes frontmatter before flattening whitespace', () => {
+  const document = '---\ntitle: ' + passage('metadata', 80) + '\n---\n' + alpha;
+  const body = normalizeDuplicateBody(document);
+  assert.equal(body, alpha);
+  const words = body.split(/\s+/);
+  const copy = words.filter((_, i) => i < 48 || i >= 60).join(' ');
+  assert.ok(matches(document, copy));
+  const broken = document.split(/\s+/).filter((_, i) => i < 80 || i >= 100).join(' ');
+  assert.equal(matches(document, broken), false);
+});
 test('identical body and whitespace or frontmatter edits', () => {
   assert.ok(matches(alpha, alpha));
   assert.ok(matches(alpha, '---\r\ntitle: changed\r\n---\r\n' + alpha.replaceAll(' ', '\r\n  ')));

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
-import { DUPLICATE_POLICY, fingerprint, compareFingerprints, duplicateBody, findDuplicates } from './lib/atlas-duplicates.mjs';
+import { DUPLICATE_POLICY, fingerprint, compareFingerprints, duplicateBody, findDuplicates, normalizeDuplicateBody } from './lib/atlas-duplicates.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const file = atlasPath(HERE);
@@ -49,7 +49,8 @@ for (let i = 0; i < pick.length; i += 1) {
   const cut = pick[i].text.slice(0, 1200);
   const edited = cut.split(/(?<=[.!?。])\s+/).filter((_, j) => j % 10 !== 3).join(' ');
   if (score(cut, edited).match) caught += 1;
-  const full = duplicateBody(pick[i]);
+  // 메타데이터를 먼저 분리. 줄바꿈을 지워 머리말이 본문으로 유입되는 대조 오류 방지
+  const full = normalizeDuplicateBody(duplicateBody(pick[i]));
   const words = full.split(/\s+/);
   const start = Math.floor(words.length * 0.4);
   const copy = words.filter((_, j) => j < start || j >= start + Math.floor(words.length * 0.1)).join(' ');

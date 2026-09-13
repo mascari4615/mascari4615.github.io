@@ -3,10 +3,14 @@ import { createHash } from 'node:crypto';
 // 본문 조각 집합의 Jaccard 유사도 0.8 이상. 짧은 글과 반복문은 정확 일치만 허용
 export const DUPLICATE_POLICY = Object.freeze({ method: 'body-shingles-v1', width: 3, at: 0.8, minShingles: 40 });
 
-export function fingerprint(body) {
-  const normalized = String(body ?? '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+export function normalizeDuplicateBody(body) {
+  return String(body ?? '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
     .replace(/^---\n[\s\S]*?\n---(?:\n|$)/, '')
     .normalize('NFKC').toLowerCase();
+}
+
+export function fingerprint(body) {
+  const normalized = normalizeDuplicateBody(body);
   const words = normalized.match(/[\p{L}\p{N}]+|[^\s\p{L}\p{N}]/gu) || [];
   const canonical = words.join(' ');
   const shingles = new Set();
