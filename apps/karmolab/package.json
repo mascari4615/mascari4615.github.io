@@ -333,6 +333,7 @@
     "test:fsplit": "node scripts/test-filesplit.mjs",
     "test:gamification": "node scripts/test-gamification.mjs",
     "test:garden": "node scripts/smoke-garden-sims.mjs",
+    "test:gate-reaper": "node --test scripts/lib/reap-browsers.test.mjs",
     "test:gate-derive": "node scripts/test-gate-derive.mjs",
     "test:ghost": "node scripts/test-ghost.mjs",
     "test:gif": "node scripts/test-gif.mjs",

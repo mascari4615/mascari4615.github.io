@@ -427,6 +427,7 @@
     "test:arcade:yacht-ranked",
     "test:arcade:multi",
     "test:garden",
+    "test:gate-reaper",
     "test:favorites",
     "smoke:pwned",
     "smoke:codeshot",
