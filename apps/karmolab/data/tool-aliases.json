@@ -184,6 +184,7 @@
     "moon": "moon phase lunar 달",
     "morse": "morse code 모스",
     "my-ai": "usage limit ratelimit 사용량 남은양 잔량 쿼터 한도 구독 claude codex grok 클로드 코덱스 그록 내ai 할당량 quota",
+    "mydash": "개인 대시보드 비공개 저장소 북마크 모아보기 AI 사용량 personal dashboard bookmarks ai usage",
     "nettool": "CIDR 서브넷 대역계산 아이피 계산 포트 방화벽 subnet ip range port",
     "numword": "number korean word 숫자한글",
     "ocr": "글자인식 사진글자 텍스트추출 스캔 ocr text recognition",
