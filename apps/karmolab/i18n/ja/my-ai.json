@@ -43,7 +43,7 @@
   "my-ai.win.secondary": "補助の上限",
   "my-ai.win.minutes": "{n}分の枠",
   "my-ai.count.images": "画像生成の残り枚数",
-  "my-ai.err.token_expired": "ログインの期限が切れた. ターミナルで claude を一度実行すると更新される。",
+  "my-ai.err.token_expired": "ログインの期限が切れた。ログインを押すとターミナル窓が開く。",
   "my-ai.err.no_credentials": "ログイン情報が見つからない。",
   "my-ai.err.not_installed": "この PC には入っていない。",
   "my-ai.err.no_snapshot": "最近の使用記録がなく、残量が分からない。",
@@ -66,5 +66,8 @@
   "my-ai.time.at_today": "今日 {hm}",
   "my-ai.time.at_tomorrow": "明日 {hm}",
   "my-ai.time.at_date": "{m}月{d}日 {hm}",
-  "my-ai.time.reset_at": "{rel}, {clock}"
+  "my-ai.time.reset_at": "{rel}, {clock}",
+  "my-ai.login.button": "ログイン",
+  "my-ai.login.opened": "ターミナル窓でログインを済ませると、ここが読み直す。",
+  "my-ai.login.failed": "ログイン窓を開けなかった ({why})"
 }

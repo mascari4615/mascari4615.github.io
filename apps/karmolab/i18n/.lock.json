@@ -9283,7 +9283,7 @@
     "my-ai.win.secondary": "b2c852edab",
     "my-ai.win.minutes": "5a10eba55c",
     "my-ai.count.images": "57364fdcf2",
-    "my-ai.err.token_expired": "47fcd00259",
+    "my-ai.err.token_expired": "4672944c8b",
     "my-ai.err.no_credentials": "4d376faa9d",
     "my-ai.err.not_installed": "772a2a7c60",
     "my-ai.err.no_snapshot": "381ae56dd0",
@@ -15096,7 +15096,10 @@
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
     "ziptool.say.picked": "19cdbc7c9a",
-    "arcade.game.daily.desc": "7e725bb711"
+    "arcade.game.daily.desc": "7e725bb711",
+    "my-ai.login.button": "e225a6fd75",
+    "my-ai.login.opened": "8371e6db55",
+    "my-ai.login.failed": "b420519d59"
   },
   "ja": {
     "about.failed": "f11e2dbbfa",
@@ -24382,7 +24385,7 @@
     "my-ai.win.secondary": "b2c852edab",
     "my-ai.win.minutes": "5a10eba55c",
     "my-ai.count.images": "57364fdcf2",
-    "my-ai.err.token_expired": "47fcd00259",
+    "my-ai.err.token_expired": "4672944c8b",
     "my-ai.err.no_credentials": "4d376faa9d",
     "my-ai.err.not_installed": "772a2a7c60",
     "my-ai.err.no_snapshot": "381ae56dd0",
@@ -30195,6 +30198,9 @@
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
     "ziptool.say.picked": "19cdbc7c9a",
-    "arcade.game.daily.desc": "7e725bb711"
+    "arcade.game.daily.desc": "7e725bb711",
+    "my-ai.login.button": "e225a6fd75",
+    "my-ai.login.opened": "8371e6db55",
+    "my-ai.login.failed": "b420519d59"
   }
 }

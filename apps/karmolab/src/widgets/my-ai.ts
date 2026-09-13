@@ -129,10 +129,15 @@ import { t, loadNamespace } from '../lib/i18n';
     }
   }
 
+  /** 로그인으로 풀리는 실패. 카드에 로그인 버튼이 붙는 조건. */
+  function needsLogin(code: string | null): boolean {
+    return code === 'token-expired' || code === 'no-credentials' || code === 'no-oauth-block' || code === 'bad-credentials';
+  }
+
   /** 백엔드가 주는 안정 코드 → 사용자가 뭘 해야 하는지. */
   function errorText(code: string): string {
     if (code === 'token-expired')
-      return t('my-ai.err.token_expired', undefined, '로그인이 만료됐다. 터미널에서 claude 를 한 번 실행하면 갱신된다.');
+      return t('my-ai.err.token_expired', undefined, '로그인이 만료됐다. 로그인을 누르면 터미널 창이 뜬다.');
     if (code === 'no-credentials' || code === 'no-oauth-block' || code === 'bad-credentials')
       return t('my-ai.err.no_credentials', undefined, '로그인 정보를 못 찾았다.');
     if (code === 'not-installed')
@@ -300,8 +305,12 @@ import { t, loadNamespace } from '../lib/i18n';
       }
       chips.push(freshnessHtml(card.quota));
     }
+    const login =
+      card.id === 'claude' && needsLogin(card.error)
+        ? `<button type="button" class="myai-login" data-claude-login>${esc(t('my-ai.login.button', undefined, '로그인'))}</button>`
+        : '';
     const body = card.error
-      ? `<p class="myai-error">${esc(errorText(card.error))}</p>`
+      ? `<p class="myai-error">${esc(errorText(card.error))}</p>${login}`
       : card.quota
         ? cardBodyHtml(card.quota)
         : `<p class="myai-note">${esc(t('my-ai.t19', undefined, '읽는 중...'))}</p>`;
@@ -328,6 +337,8 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
       .myai-mode { appearance: none; background: transparent; border: 0; color: var(--text-secondary); font-size: var(--font-size-2xs); padding: 4px 11px; cursor: pointer; }
       .myai-mode + .myai-mode { border-left: 1px solid var(--border); }
+      .myai-login { appearance: none; margin-top: 6px; border: 1px solid var(--myai-accent); border-radius: var(--radius-pill); background: transparent; color: var(--myai-accent); font-size: var(--font-size-xs); padding: 5px 14px; cursor: pointer; }
+      .myai-login:disabled { opacity: .5; cursor: default; }
       .myai-mode--on { background: var(--accent); color: var(--bg-primary); font-weight: 600; }
       .myai-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: start; }
       .myai-card { border: 1px solid var(--border); border-left: 4px solid var(--myai-accent); border-radius: var(--radius-md); background: var(--bg-secondary); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
@@ -437,6 +448,51 @@ import { t, loadNamespace } from '../lib/i18n';
         return;
       }
       cards.innerHTML = cards_data.map(renderCard).join('');
+      cards.querySelector<HTMLButtonElement>('[data-claude-login]')?.addEventListener('click', startLogin);
+    }
+
+    /**
+     * 로그인은 브라우저 OAuth, 사람이 끝냄. 창을 띄운 뒤 몇 초 간격 재조회,
+     * 카드가 살아나면 정지. 3분 넘으면 60초 자동 갱신에 위임.
+     */
+    const LOGIN_POLL_MS = 5_000;
+    const LOGIN_POLL_MAX = 36;
+    let loginPoll = 0;
+    let loginPollLeft = 0;
+
+    function stopLoginPoll(): void {
+      if (!loginPoll) return;
+      window.clearInterval(loginPoll);
+      loginPoll = 0;
+    }
+
+    function claudeStillLocked(): boolean {
+      const claude = cards_data.find((c) => c.id === 'claude');
+      return !!claude && needsLogin(claude.error);
+    }
+
+    function startLogin(ev: Event): void {
+      const btn = ev.currentTarget as HTMLButtonElement;
+      btn.disabled = true;
+      void invoke<void>('ai_quota_claude_login')
+        .then(() => {
+          updated.textContent = t('my-ai.login.opened', undefined, '터미널 창에서 로그인을 마치면 여기가 다시 읽는다.');
+          stopLoginPoll();
+          loginPollLeft = LOGIN_POLL_MAX;
+          loginPoll = window.setInterval(() => {
+            loginPollLeft -= 1;
+            if (!claudeStillLocked() || loginPollLeft <= 0) {
+              stopLoginPoll();
+              return;
+            }
+            refresh();
+          }, LOGIN_POLL_MS);
+        })
+        .catch((e: unknown) => {
+          btn.disabled = false;
+          const why = e instanceof Error ? e.message : String(e);
+          updated.textContent = t('my-ai.login.failed', { why }, `로그인 창을 못 띄웠다 (${why})`);
+        });
     }
 
     for (const { mode, el } of modeButtons) {
@@ -501,6 +557,7 @@ import { t, loadNamespace } from '../lib/i18n';
     // (blog CLAUDE.md § KarmoLab 화면 작업).
     Toolbox.onDispose?.(() => {
       stopTimer();
+      stopLoginPoll();
       document.removeEventListener('visibilitychange', onVisibility);
     });
   }

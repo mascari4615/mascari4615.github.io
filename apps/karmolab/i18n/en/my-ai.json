@@ -43,7 +43,7 @@
   "my-ai.win.secondary": "Secondary limit",
   "my-ai.win.minutes": "{n}-minute window",
   "my-ai.count.images": "Image generations left",
-  "my-ai.err.token_expired": "Login expired. run claude once in a terminal to refresh it.",
+  "my-ai.err.token_expired": "Login expired. Press Login to open a terminal window.",
   "my-ai.err.no_credentials": "No login found.",
   "my-ai.err.not_installed": "Not installed on this machine.",
   "my-ai.err.no_snapshot": "No recent usage on record, so the remaining amount is unknown.",
@@ -66,5 +66,8 @@
   "my-ai.time.at_today": "today {hm}",
   "my-ai.time.at_tomorrow": "tomorrow {hm}",
   "my-ai.time.at_date": "{m}/{d} {hm}",
-  "my-ai.time.reset_at": "{rel}, {clock}"
+  "my-ai.time.reset_at": "{rel}, {clock}",
+  "my-ai.login.button": "Login",
+  "my-ai.login.opened": "Finish signing in in the terminal window and this card reloads.",
+  "my-ai.login.failed": "Could not open the login window ({why})"
 }

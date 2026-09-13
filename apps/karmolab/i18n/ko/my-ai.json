@@ -43,7 +43,7 @@
   "my-ai.win.secondary": "보조 한도",
   "my-ai.win.minutes": "{n}분 창",
   "my-ai.count.images": "이미지 생성 남은 장수",
-  "my-ai.err.token_expired": "로그인이 만료됐다. 터미널에서 claude 를 한 번 실행하면 갱신된다.",
+  "my-ai.err.token_expired": "로그인이 만료됐다. 로그인을 누르면 터미널 창이 뜬다.",
   "my-ai.err.no_credentials": "로그인 정보를 못 찾았다.",
   "my-ai.err.not_installed": "이 컴퓨터에 설치돼 있지 않다.",
   "my-ai.err.no_snapshot": "최근 사용 기록이 없어 남은 양을 알 수 없다.",
@@ -66,5 +66,8 @@
   "my-ai.time.at_today": "오늘 {hm}",
   "my-ai.time.at_tomorrow": "내일 {hm}",
   "my-ai.time.at_date": "{m}월 {d}일 {hm}",
-  "my-ai.time.reset_at": "{rel}, {clock}"
+  "my-ai.time.reset_at": "{rel}, {clock}",
+  "my-ai.login.button": "로그인",
+  "my-ai.login.opened": "터미널 창에서 로그인을 마치면 여기가 다시 읽는다.",
+  "my-ai.login.failed": "로그인 창을 못 띄웠다 ({why})"
 }

@@ -68,6 +68,38 @@ fn push_window(out: &mut Vec<QuotaWindow>, key: &str, w: &Option<UsageWindow>) {
     }
 }
 
+/// 로그인 창 띄우기. 토큰 갱신은 CLI 몫, 사용자의 터미널 직접 열기 없음
+/// `claude auth status`: 파일 읽기만, 갱신 없음 (2026-09-13 번들 실측)
+/// 그래서 브라우저 OAuth 를 다시 도는 `claude auth login` 을 새 콘솔에
+/// 끝나도 창 유지 (pause): 실패 문구 읽을 틈
+fn spawn_login() -> Result<(), String> {
+    use std::process::Command;
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        Command::new("cmd")
+            .raw_arg(r#"/c start "Claude login" cmd /c "claude auth login & pause""#)
+            .creation_flags(0x0800_0000) // CREATE_NO_WINDOW: 띄우는 쪽 콘솔은 안 보이게
+            .spawn()
+            .map_err(|e| format!("spawn-failed: {e}"))?;
+    }
+    #[cfg(not(windows))]
+    {
+        Command::new("claude")
+            .args(["auth", "login"])
+            .spawn()
+            .map_err(|e| format!("spawn-failed: {e}"))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn ai_quota_claude_login() -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(spawn_login)
+        .await
+        .map_err(|e| format!("join-error: {e}"))?
+}
+
 pub async fn probe() -> Result<VendorQuota, String> {
     let creds = tauri::async_runtime::spawn_blocking(read_token)
         .await

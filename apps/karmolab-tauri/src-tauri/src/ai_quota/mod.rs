@@ -16,6 +16,7 @@ mod grok;
 mod shared;
 
 pub use shared::{QuotaCount, QuotaWindow, VendorCard, VendorQuota, VendorSpec};
+pub use claude::ai_quota_claude_login;
 
 /// 카드 순서 = 실제로 기대는 순서 (주력 → 보조 → 곁가지).
 static SOURCES: &[VendorSpec] = &[
