@@ -69,5 +69,6 @@
   "my-ai.time.reset_at": "{rel}, {clock}",
   "my-ai.login.button": "Login",
   "my-ai.login.opened": "Finish signing in in the terminal window and this card reloads.",
-  "my-ai.login.failed": "Could not open the login window ({why})"
+  "my-ai.login.failed": "Could not open the login window ({why})",
+  "my-ai.note.why": "Blocked by: {why}"
 }

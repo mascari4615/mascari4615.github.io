@@ -129,9 +129,22 @@ import { t, loadNamespace } from '../lib/i18n';
     }
   }
 
-  /** 로그인으로 풀리는 실패. 카드에 로그인 버튼이 붙는 조건. */
-  function needsLogin(code: string | null): boolean {
+  /** 로그인으로 풀리는 실패 코드. */
+  function isLoginCode(code: string): boolean {
     return code === 'token-expired' || code === 'no-credentials' || code === 'no-oauth-block' || code === 'bad-credentials';
+  }
+
+  /** 스냅샷으로 강등된 카드는 error 대신 `why:<code>` 노트에 막힌 이유가 온다. */
+  function blockedBy(card: VendorCard): string | null {
+    if (card.error) return card.error;
+    const why = card.quota?.notes.find((n) => n.startsWith('why:'));
+    return why ? why.slice(4) : null;
+  }
+
+  /** 카드에 로그인 버튼이 붙는 조건. 죽은 카드든 강등된 카드든 이유가 로그인이면. */
+  function needsLogin(card: VendorCard): boolean {
+    const code = blockedBy(card);
+    return code !== null && isLoginCode(code);
   }
 
   /** 백엔드가 주는 안정 코드 → 사용자가 뭘 해야 하는지. */
@@ -157,6 +170,8 @@ import { t, loadNamespace } from '../lib/i18n';
       return t('my-ai.note.live_failed', undefined, '실시간 조회가 막혀서 로컬에 남은 마지막 기록을 보여준다.');
     if (code === 'no-percent-api')
       return t('my-ai.note.no_percent_api', undefined, 'x.ai 에 잔량 조회 API 가 없어 퍼센트는 못 뽑는다. 아래는 로그에 남은 사실.');
+    if (code.startsWith('why:'))
+      return t('my-ai.note.why', { why: errorText(code.slice(4)) }, `막힌 이유: ${errorText(code.slice(4))}`);
     return code;
   }
 
@@ -306,13 +321,13 @@ import { t, loadNamespace } from '../lib/i18n';
       chips.push(freshnessHtml(card.quota));
     }
     const login =
-      card.id === 'claude' && needsLogin(card.error)
+      card.id === 'claude' && needsLogin(card)
         ? `<button type="button" class="myai-login" data-claude-login>${esc(t('my-ai.login.button', undefined, '로그인'))}</button>`
         : '';
     const body = card.error
       ? `<p class="myai-error">${esc(errorText(card.error))}</p>${login}`
       : card.quota
-        ? cardBodyHtml(card.quota)
+        ? cardBodyHtml(card.quota) + login
         : `<p class="myai-note">${esc(t('my-ai.t19', undefined, '읽는 중...'))}</p>`;
 
     return `
@@ -468,7 +483,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
     function claudeStillLocked(): boolean {
       const claude = cards_data.find((c) => c.id === 'claude');
-      return !!claude && needsLogin(claude.error);
+      return !!claude && needsLogin(claude);
     }
 
     function startLogin(ev: Event): void {

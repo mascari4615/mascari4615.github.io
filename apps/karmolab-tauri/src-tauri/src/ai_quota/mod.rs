@@ -25,9 +25,9 @@ static SOURCES: &[VendorSpec] = &[
     VendorSpec { id: "grok", label: "Grok", accent: "#8b8b8b" },
 ];
 
-async fn probe_one(spec: &'static VendorSpec) -> VendorCard {
+async fn probe_one(spec: &'static VendorSpec, snapshot_dir: Option<std::path::PathBuf>) -> VendorCard {
     let result = match spec.id {
-        "claude" => claude::probe().await,
+        "claude" => claude::probe(snapshot_dir).await,
         "codex" => codex::probe().await,
         "grok" => grok::probe().await,
         other => Err(format!("no-source: {other}")),
@@ -38,10 +38,16 @@ async fn probe_one(spec: &'static VendorSpec) -> VendorCard {
 /// 카드 전부를 한 번에. 벤더 하나가 죽어도 나머지는 그대로 온다 — 실패는
 /// 카드 안의 `error` 로 실려서, 화면이 왜 비었는지 말할 수 있다.
 #[tauri::command]
-pub async fn ai_quota_all() -> Result<Vec<VendorCard>, String> {
+pub async fn ai_quota_all(app: tauri::AppHandle) -> Result<Vec<VendorCard>, String> {
+    use tauri::Manager;
+    // 마지막 라이브값 저장 자리. 없어도 라이브 조회는 그대로 (저장만 생략)
+    let snapshot_dir = app.path().app_data_dir().ok().map(|p| p.join("ai-quota"));
     let mut cards = Vec::with_capacity(SOURCES.len());
     // 벤더별 요청은 서로 독립이라 동시에 띄운다 — 느린 하나가 화면을 잡아두면 안 된다.
-    let probes: Vec<_> = SOURCES.iter().map(probe_one).collect();
+    let probes: Vec<_> = SOURCES
+        .iter()
+        .map(|spec| probe_one(spec, snapshot_dir.clone()))
+        .collect();
     for card in futures_util::future::join_all(probes).await {
         cards.push(card);
     }
@@ -125,6 +131,24 @@ mod tests {
         let card = VendorCard::from(&SOURCES[0], Ok(q));
         let json = serde_json::to_string(&card).unwrap();
         assert!(!json.contains(&creds.access_token), "토큰이 DTO 로 새어 나갔다");
+    }
+
+    #[test]
+    fn claude_snapshot_round_trips_and_drops_reset_windows() {
+        // 저장한 라이브값 재독: live 는 false, 리셋 지난 창 탈락
+        let dir = std::env::temp_dir().join(format!("kl-ai-quota-test-{}", std::process::id()));
+        let mut q = VendorQuota::new(true);
+        q.observed_at = Some(now_secs());
+        q.plan = Some("max".into());
+        q.windows.push(QuotaWindow { key: "five_hour".into(), used_percent: Some(40.0), resets_at: Some(now_secs() - 60) });
+        q.windows.push(QuotaWindow { key: "seven_day".into(), used_percent: Some(12.5), resets_at: Some(now_secs() + 86_400) });
+        super::claude::save_snapshot_for_test(&dir, &q);
+        let back = super::claude::load_snapshot_for_test(&dir).expect("스냅샷 읽기");
+        assert!(!back.live);
+        assert_eq!(back.plan.as_deref(), Some("max"));
+        assert_eq!(back.windows.len(), 1, "리셋 지난 5시간 창은 빠져야 한다");
+        assert_eq!(back.windows[0].key, "seven_day");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

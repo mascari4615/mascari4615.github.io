@@ -4,6 +4,7 @@
 //! DTO 에 담지 않고 에러 문자열에도 응답 본문을 그대로 싣지 않는다.
 
 use serde::Deserialize;
+use std::path::PathBuf;
 
 use super::shared::*;
 
@@ -100,7 +101,67 @@ pub async fn ai_quota_claude_login() -> Result<(), String> {
         .map_err(|e| format!("join-error: {e}"))?
 }
 
-pub async fn probe() -> Result<VendorQuota, String> {
+/// 마지막 라이브 성공값 파일. 로그인 만료나 429 로 라이브가 막혀도 남는 값
+/// 토큰 없음 (VendorQuota 에 토큰 자리 없음)
+fn snapshot_path(dir: &Option<PathBuf>) -> Option<PathBuf> {
+    dir.as_ref().map(|d| d.join("claude-last.json"))
+}
+
+fn save_snapshot(path: &Option<PathBuf>, q: &VendorQuota) {
+    let Some(p) = path else { return };
+    if let Some(parent) = p.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    if let Ok(json) = serde_json::to_string(q) {
+        let _ = std::fs::write(p, json);
+    }
+}
+
+/// 저장된 마지막 라이브값을 스냅샷으로. 이미 리셋된 창 제외 (5시간 창은 금방 무의미)
+fn load_snapshot(path: &Option<PathBuf>) -> Option<VendorQuota> {
+    let p = path.as_ref()?;
+    let raw = std::fs::read_to_string(p).ok()?;
+    let mut q: VendorQuota = serde_json::from_str(&raw).ok()?;
+    let now = now_secs();
+    q.live = false;
+    q.windows.retain(|w| w.resets_at.map_or(true, |r| r > now));
+    if q.is_empty() {
+        return None;
+    }
+    Some(q)
+}
+
+#[cfg(test)]
+pub fn save_snapshot_for_test(dir: &std::path::Path, q: &VendorQuota) {
+    save_snapshot(&snapshot_path(&Some(dir.to_path_buf())), q);
+}
+
+#[cfg(test)]
+pub fn load_snapshot_for_test(dir: &std::path::Path) -> Option<VendorQuota> {
+    load_snapshot(&snapshot_path(&Some(dir.to_path_buf())))
+}
+
+pub async fn probe(snapshot_dir: Option<PathBuf>) -> Result<VendorQuota, String> {
+    let path = snapshot_path(&snapshot_dir);
+    let live_err = match probe_live().await {
+        Ok(q) => {
+            save_snapshot(&path, &q);
+            return Ok(q);
+        }
+        Err(e) => e,
+    };
+    // 라이브가 막혀도 마지막 성공값은 남음. 낡음 표시와 막힌 이유를 달아 표시
+    match load_snapshot(&path) {
+        Some(mut q) => {
+            q.notes.push("live-failed".to_string());
+            q.notes.push(format!("why:{live_err}"));
+            Ok(q)
+        }
+        None => Err(live_err),
+    }
+}
+
+async fn probe_live() -> Result<VendorQuota, String> {
     let creds = tauri::async_runtime::spawn_blocking(read_token)
         .await
         .map_err(|e| format!("join-error: {e}"))??;

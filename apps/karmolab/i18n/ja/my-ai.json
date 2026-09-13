@@ -69,5 +69,6 @@
   "my-ai.time.reset_at": "{rel}, {clock}",
   "my-ai.login.button": "ログイン",
   "my-ai.login.opened": "ターミナル窓でログインを済ませると、ここが読み直す。",
-  "my-ai.login.failed": "ログイン窓を開けなかった ({why})"
+  "my-ai.login.failed": "ログイン窓を開けなかった ({why})",
+  "my-ai.note.why": "止まった理由: {why}"
 }

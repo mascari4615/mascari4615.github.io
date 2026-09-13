@@ -15099,7 +15099,8 @@
     "arcade.game.daily.desc": "7e725bb711",
     "my-ai.login.button": "e225a6fd75",
     "my-ai.login.opened": "8371e6db55",
-    "my-ai.login.failed": "b420519d59"
+    "my-ai.login.failed": "b420519d59",
+    "my-ai.note.why": "f2efa80652"
   },
   "ja": {
     "about.failed": "f11e2dbbfa",
@@ -30201,6 +30202,7 @@
     "arcade.game.daily.desc": "7e725bb711",
     "my-ai.login.button": "e225a6fd75",
     "my-ai.login.opened": "8371e6db55",
-    "my-ai.login.failed": "b420519d59"
+    "my-ai.login.failed": "b420519d59",
+    "my-ai.note.why": "f2efa80652"
   }
 }

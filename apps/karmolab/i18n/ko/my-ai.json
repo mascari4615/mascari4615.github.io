@@ -69,5 +69,6 @@
   "my-ai.time.reset_at": "{rel}, {clock}",
   "my-ai.login.button": "로그인",
   "my-ai.login.opened": "터미널 창에서 로그인을 마치면 여기가 다시 읽는다.",
-  "my-ai.login.failed": "로그인 창을 못 띄웠다 ({why})"
+  "my-ai.login.failed": "로그인 창을 못 띄웠다 ({why})",
+  "my-ai.note.why": "막힌 이유: {why}"
 }

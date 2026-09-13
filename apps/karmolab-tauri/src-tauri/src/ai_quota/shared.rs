@@ -3,11 +3,11 @@
 //! 벤더마다 잡히는 것이 다르고 **신선도가 다르다**. 그 차이를 숨기지 않는 게
 //! 이 층의 계약이라, `live` 와 `observed_at` 은 선택 항목이 아니다.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// 사용량 창 하나 (예: 5시간 창, 7일 창).
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuotaWindow {
     /// 안정 키 — 프론트 i18n 이 이걸로 라벨을 고른다.
     pub key: String,
@@ -18,13 +18,13 @@ pub struct QuotaWindow {
 }
 
 /// 퍼센트가 아닌 낱개 잔량 (예: 이미지 N장).
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QuotaCount {
     pub key: String,
     pub remaining: i64,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VendorQuota {
     /// true = 방금 벤더에 물어본 값 / false = 로컬에 남은 마지막 관측 스냅샷.
     pub live: bool,
