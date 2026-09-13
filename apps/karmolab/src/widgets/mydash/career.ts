@@ -8,11 +8,18 @@
  * ## 안 하는 것
  *
  * 나 페이지 원칙 3절 (`memo/notes/mydash/docs/나-페이지-설계.md`). 점수, 등급, 성격 판정,
- * 진행률 바 금지. 여기 숫자는 개수와 날짜뿐. 12항목을 5칸으로 세는 것은 세기이지
- * 채점이 아님. 칸은 비율 막대로 안 그림. 빈 칸은 그냥 0.
+ * 진행률 바 금지. 여기 숫자는 개수와 날짜뿐. 10항목을 상태별로 세는 것은 세기이지
+ * 채점이 아님. 점수판으로 안 읽히게 큰 숫자 타일 대신 한 줄 목록.
+ * 빈 칸은 0 이 아니라 하이픈. 못 읽은 것과 0 은 화면에서 다름.
  *
- * 계기판 3줄도 scoreboard.md 의 규칙 그대로. 등급 마지막 이동일이 없으면 "없음",
- * 축 교체일을 이동일로 대체 금지 (생성기가 이미 null 로 냄).
+ * ## 등급 예외
+ *
+ * 원칙 3절이 금지한 등급은 화면이 만드는 판정. 여기 등급은 `career/goal/scoreboard.md`
+ * 라는 사용자 정본의 개념이고, 이 화면은 그 갱신 날짜만 옮김. 등급 값도 등급 이름도
+ * 안 그림. 화면 말은 "판정 갱신" 으로 두어 등급을 화면 어휘로 올리지 않음.
+ *
+ * 계기판 3줄도 scoreboard.md 의 규칙 그대로. 마지막 갱신일이 없으면 "없음",
+ * 축 교체일을 갱신일로 대체 금지 (생성기가 이미 null 로 냄).
  *
  * ## 안 박는 것
  *
@@ -95,13 +102,6 @@ import { t, loadNamespace } from '../../lib/i18n';
       '.cr-goal i{font-style:normal;font-size:var(--font-size-title);line-height:1.3;',
       'font-variant-numeric:tabular-nums;color:var(--accent-ink)}',
       '.cr-goal span{font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
-      /* 폰이 기본 두 칸. 넓어지면 다섯 (상태 갈래가 다섯) */
-      '.cr-nums{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-sm)}',
-      '@media(min-width:560px){.cr-nums{grid-template-columns:repeat(5,1fr)}}',
-      '.cr-num{padding:var(--space-sm);border-radius:var(--radius-lg);background:var(--bg-tertiary)}',
-      '.cr-num b{display:block;font-size:var(--font-size-title);line-height:1.3;',
-      'font-variant-numeric:tabular-nums}',
-      '.cr-num span{display:block;font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       /* 목록 안에 또 스크롤을 만들지 않는다. 판 전체가 스크롤 */
       '.cr-list{max-height:none}',
       '.cr-list .tool-list-row{align-items:flex-start;min-height:var(--cr-tap)}',
@@ -123,9 +123,17 @@ import { t, loadNamespace } from '../../lib/i18n';
     return typeof v === 'string' ? v : '';
   }
 
-  function num(v: unknown): number {
-    return typeof v === 'number' && isFinite(v) ? v : 0;
+  /**
+   * 숫자인가. 아니면 null.
+   * 생성기가 markdown 을 못 읽으면 그 자리를 null 로 낸다. 0 으로 메우면 "정말 0회" 와
+   * "못 읽음" 이 화면에서 같아진다 (pc-vitals 의 numOf 와 같은 손).
+   */
+  function numOr(v: unknown): number | null {
+    return typeof v === 'number' && isFinite(v) ? v : null;
   }
+
+  /** 못 읽은 자리. 0 이 아니라 하이픈 */
+  const DASH = '-';
 
   function schemaMajor(schema: unknown): number | null {
     if (typeof schema !== 'string') return null;
@@ -266,20 +274,24 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /**
    * 계기판 3줄. scoreboard.md 의 코드 블록 그대로.
-   * 등급 이동일 null 이면 "없음". 측정일을 이동일 자리에 대체 금지.
+   * 갱신일 null 이면 "없음". 측정일을 갱신일 자리에 대체 금지.
+   * 측정 누계를 못 읽으면 "0회" 가 아니라 "없음" 과 하이픈.
    */
   function gaugeHtml(g: Gauge | undefined): string {
     const move = text(g && g.lastGradeMoveAt).slice(0, 10);
     const last = text(g && g.lastMeasureAt).slice(0, 10);
-    const count = num(g && g.measureCount);
+    const count = numOr(g && g.measureCount);
+    const none = t('mydash.cr.none', undefined, '없음');
     const rows =
       rowHtml(
-        t('mydash.cr.gauge.move', undefined, '등급 이동'),
-        valHtml(move || t('mydash.cr.none', undefined, '없음'), move ? agoWords(move) : '')
+        t('mydash.cr.gauge.move', undefined, '판정 갱신'),
+        valHtml(move || none, move ? agoWords(move) : '')
       ) +
       rowHtml(
         t('mydash.cr.gauge.count', undefined, '측정 누계'),
-        valHtml(t('mydash.cr.gauge.countVal', { n: count }, '{n}회'), '')
+        count === null
+          ? valHtml(none, DASH)
+          : valHtml(t('mydash.cr.gauge.countVal', { n: count }, '{n}회'), '')
       ) +
       rowHtml(
         t('mydash.cr.gauge.last', undefined, '마지막 측정'),
@@ -293,40 +305,58 @@ import { t, loadNamespace } from '../../lib/i18n';
   }
 
   /**
-   * 상태 칸 다섯. 세는 기준은 `board` 의 수 필드, 항목 목록과 어긋나면 목록 우선
+   * 상태별 셈. 세는 기준은 `board` 의 수 필드, 항목 목록과 어긋나면 목록 우선
    * (수 필드는 markdown 의 "지금 상태" 블록에서 따로 옴, 표와 갈릴 수 있음).
    * 어긋난 것은 조용히 덮지 않고 아래 한 줄로 표시.
+   *
+   * 표를 통째로 못 읽었고 (`items` 빈 배열) 수 필드도 전부 null 이면 `unread`.
+   * 그때 다섯 칸을 0 으로 그리면 "전부 없음" 이라는 없는 관찰 생성.
    */
-  function tallyOf(board: Board, items: BoardItem[]): { counted: Record<string, number>; order: string[] } {
-    const counted: Record<string, number> = {};
+  function tallyOf(
+    board: Board,
+    items: BoardItem[]
+  ): { counted: Record<string, number | null>; order: string[]; unread: boolean } {
+    const counted: Record<string, number | null> = {};
     for (const k of STATES) counted[k] = 0;
     const order: string[] = STATES.slice();
     for (const it of items) {
       const k = text(it.state) || 'unmeasured';
-      if (!(k in counted)) {
+      if (typeof counted[k] !== 'number') {
         counted[k] = 0;
-        order.push(k);
+        if (!order.includes(k)) order.push(k);
       }
-      counted[k] += 1;
+      counted[k] = (counted[k] as number) + 1;
     }
+    let unread = false;
     if (!items.length) {
-      for (const k of STATES) counted[k] = num((board as Record<string, unknown>)[k]);
+      let some = false;
+      for (const k of STATES) {
+        const v = numOr((board as Record<string, unknown>)[k]);
+        counted[k] = v;
+        if (v !== null) some = true;
+      }
+      unread = !some;
     }
-    return { counted, order };
+    return { counted, order, unread };
   }
 
-  function numsHtml(counted: Record<string, number>, order: string[]): string {
-    return (
-      '<div class="cr-nums">' +
-      order
-        .map(
-          (k) =>
-            '<div class="cr-num"><b>' + esc(String(counted[k] || 0)) + '</b><span>' +
-            esc(stateLabel(k)) + '</span></div>'
-        )
-        .join('') +
-      '</div>'
-    );
+  /** 상태 한 줄 목록. 큰 숫자 타일로 세우면 점수판으로 읽힌다. 못 읽은 갈래는 하이픈 */
+  function numsHtml(counted: Record<string, number | null>, order: string[]): string {
+    const rows = order
+      .map((k) => {
+        const v = counted[k];
+        return rowHtml(
+          stateLabel(k),
+          valHtml(
+            v === null || v === undefined
+              ? DASH
+              : t('mydash.cr.state.count', { n: v }, '{n}건'),
+            ''
+          )
+        );
+      })
+      .join('');
+    return '<div class="tool-list cr-list">' + rows + '</div>';
   }
 
   /** 항목 목록. 상태별 묶음, 묶음 안은 파일 차례 그대로 (표 차례가 정본) */
@@ -346,12 +376,20 @@ import { t, loadNamespace } from '../../lib/i18n';
     return out.join('');
   }
 
-  /** 수 필드와 항목 셈이 갈리나. 갈리면 사람이 markdown 을 봐야 한다 */
-  function mismatchWords(board: Board, counted: Record<string, number>, items: BoardItem[]): string {
+  /**
+   * 수 필드와 항목 셈의 일치 여부 확인. 어긋나면 markdown 정본 대조 필수.
+   * 수 필드를 못 읽은 갈래 (null) 는 비교 제외. 못 읽음과 불일치는 다른 사태.
+   */
+  function mismatchWords(
+    board: Board,
+    counted: Record<string, number | null>,
+    items: BoardItem[]
+  ): string {
     if (!items.length) return '';
     const bad: string[] = [];
     for (const k of STATES) {
-      const said = num((board as Record<string, unknown>)[k]);
+      const said = numOr((board as Record<string, unknown>)[k]);
+      if (said === null) continue;
       if (said !== (counted[k] || 0)) bad.push(stateLabel(k));
     }
     if (!bad.length) return '';
@@ -399,9 +437,9 @@ import { t, loadNamespace } from '../../lib/i18n';
       : [];
     const phase = text(d.phase);
 
-    const { counted, order } = tallyOf(board, items);
+    const { counted, order, unread } = tallyOf(board, items);
     const mismatch = mismatchWords(board, counted, items);
-    const warnings = num(raw.counts && raw.counts.warnings);
+    const warnings = numOr(raw.counts && raw.counts.warnings) || 0;
 
     status(
       t(
@@ -436,7 +474,11 @@ import { t, loadNamespace } from '../../lib/i18n';
       ) +
       secHtml(
         t('mydash.cr.sec.board', undefined, '항목 상태'),
-        numsHtml(counted, order) + itemsHtml(items, order)
+        unread
+          ? '<div class="tool-status error">' +
+            esc(t('mydash.cr.boardUnread', undefined, '정본을 못 읽었습니다')) +
+            '</div>'
+          : numsHtml(counted, order) + itemsHtml(items, order)
       ) +
       '<div class="cr-foot">' +
       esc(
@@ -452,9 +494,15 @@ import { t, loadNamespace } from '../../lib/i18n';
     root.appendChild(wrap);
   }
 
+  /* 탭 이름은 패널을 열기 전에 그려진다. 묶음을 미리 받아 둔다 (bookmarks 와 같은 손) */
+  void loadNamespace('mydash').catch(() => undefined);
+
   dashRegistry().register({
     id: 'career',
-    title: '커리어',
+    /* 탭 이름도 옮긴 말. 셸이 그릴 때 읽으므로 getter (bookmarks 와 같은 손) */
+    get title(): string {
+      return t('mydash.cr.title', undefined, '커리어');
+    },
     access: 'read',
     paths: [DATA_PATH],
     render,

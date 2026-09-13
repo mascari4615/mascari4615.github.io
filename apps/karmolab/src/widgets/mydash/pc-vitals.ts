@@ -41,13 +41,20 @@ import { t, loadNamespace } from '../../lib/i18n';
     diskFreeGbMin?: number | null;
   };
   type Verdict = { day?: string; kind?: string; text?: string };
+  /**
+   * 메모리 % 의 분모. journal 줄에 총량이 없어 생성기가 쓴 기준을 봉투에 기록.
+   * `from` 이 `live` 면 오늘의 라이브 스냅샷 총량으로 30일치를 다시 잰 것.
+   * 아직 안 넣는 봉투가 있으므로 없으면 줄 자체를 생략.
+   */
+  type Basis = { totalMB?: number | null; commitLimitMB?: number | null; from?: string };
   type Vitals = {
     schema?: string;
     generatedAt?: string;
     generator?: string;
     source?: unknown;
     counts?: { days?: number; samples?: number; verdicts?: number };
-    data?: { host?: string; latest?: Latest; days?: Day[]; verdicts?: Verdict[] };
+    basis?: Basis;
+    data?: { host?: string; latest?: Latest; days?: Day[]; verdicts?: Verdict[]; basis?: Basis };
   };
 
   const ROOT_DIR = 'data/pc-vitals';
@@ -301,19 +308,30 @@ import { t, loadNamespace } from '../../lib/i18n';
           '</div><div class="tool-chips" data-hosts="1"></div></div>'
         : '') +
       '<div class="tool-status" data-stale="1" hidden></div>' +
+      /* 오류 전용 칸. 뼈대를 갈아치우면 기기 칩이 사라져 다른 기기로 못 돌아간다 */
+      '<div class="tool-status error" data-err="1" hidden></div>' +
       '<div class="pv-nums" data-nums="1"></div>' +
       '<div class="tool-sublabel" data-chartlabel="1"></div>' +
       '<canvas class="pv-chart" data-chart="1"></canvas>' +
       '<div class="pv-sec" data-verdicts="1"></div>' +
-      '<div class="pv-foot" data-foot="1"></div>';
+      '<div class="pv-foot" data-foot="1"></div>' +
+      '<div class="pv-foot" data-basis="1" hidden></div>';
 
     const hostsEl = wrap.querySelector('[data-hosts]') as HTMLElement | null;
     const staleEl = wrap.querySelector('[data-stale]') as HTMLElement;
+    const errEl = wrap.querySelector('[data-err]') as HTMLElement;
     const numsEl = wrap.querySelector('[data-nums]') as HTMLElement;
     const chartLabelEl = wrap.querySelector('[data-chartlabel]') as HTMLElement;
     const canvas = wrap.querySelector('[data-chart]') as HTMLCanvasElement;
     const verdictsEl = wrap.querySelector('[data-verdicts]') as HTMLElement;
     const footEl = wrap.querySelector('[data-foot]') as HTMLElement;
+    const basisEl = wrap.querySelector('[data-basis]') as HTMLElement;
+
+    /** 오류 칸. 빈 글자면 숨김 */
+    function showError(msg: string): void {
+      errEl.textContent = msg;
+      errEl.hidden = !msg;
+    }
 
     if (hostsEl) {
       for (const name of hosts) {
@@ -323,8 +341,23 @@ import { t, loadNamespace } from '../../lib/i18n';
         b.textContent = name;
         b.addEventListener('click', () => {
           if (host === name) return;
+          const prev = host;
           host = name;
-          void load();
+          /* 최초 진입만 셸 onPanelFail 에 닿는다. 칩 전환 실패는 여기서 직접 보여야
+             상태줄이 "받는 중" 에 영영 멈추지 않는다 */
+          load().catch((e: unknown) => {
+            const why = e instanceof Error ? e.message : String(e);
+            const msg = t(
+              'mydash.pv.hostFail',
+              { host: name, why },
+              '{host} 를 못 읽었습니다 ({why}). 화면은 이전 기기 그대로'
+            );
+            showError(msg);
+            status(msg);
+            /* 고른 칩과 그려진 것이 갈리지 않게 표시는 이전 기기로 되돌린다 */
+            host = prev;
+            markHost();
+          });
         });
         hostsEl.appendChild(b);
       }
@@ -395,23 +428,40 @@ import { t, loadNamespace } from '../../lib/i18n';
       drawBars(canvas, axis, avgOf, maxOf);
     }
 
+    /** 판이 다를 때 비우는 자리. 기기 칩과 오류 칸은 남긴다 */
+    function clearBody(): void {
+      staleEl.hidden = true;
+      staleEl.textContent = '';
+      numsEl.innerHTML = '';
+      chartLabelEl.textContent = '';
+      verdictsEl.innerHTML = '';
+      footEl.textContent = '';
+      basisEl.hidden = true;
+      basisEl.textContent = '';
+      axis = [];
+      avgOf = {};
+      maxOf = {};
+      repaintChart();
+    }
+
     async function load(): Promise<void> {
       markHost();
+      showError('');
       status(host + ', ' + loading);
       const raw = await repo.readJson<Vitals>(ROOT_DIR + '/' + host + '/summary.json');
 
       const major = schemaMajor(raw.schema);
       if (major !== null && major !== SCHEMA_MAJOR) {
-        wrap.innerHTML =
-          '<div class="tool-status error">' +
-          esc(
-            t(
-              'mydash.pv.schemaBad',
-              { schema: text(raw.schema) },
-              '모르는 판입니다 ({schema}). 대시보드를 다시 배포하세요'
-            )
-          ) +
-          '</div>';
+        /* 뼈대를 통째로 갈면 기기 칩이 DOM 에서 사라져 다른 기기로 복귀 불가.
+           오류는 전용 칸에만 표시, 본문만 비움 */
+        clearBody();
+        const msg = t(
+          'mydash.pv.schemaBad',
+          { schema: text(raw.schema) },
+          '모르는 판입니다 ({schema}). 대시보드를 다시 배포하세요'
+        );
+        showError(msg);
+        status(host + ', ' + msg);
         return;
       }
 
@@ -471,6 +521,27 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       footEl.textContent = foot.join(', ');
 
+      /* 메모리 % 의 분모. journal 줄에 총량이 없어 생성기가 오늘의 라이브 스냅샷으로
+         30일치를 다시 잰다. 분모를 모르면 과거 수치를 잘못 읽으므로 바닥에 한 줄.
+         봉투에 basis 가 없는 판은 줄 자체를 생략 (없는 근거를 지어내지 않음) */
+      const basis: Basis = raw.basis || (raw.data && raw.data.basis) || {};
+      const totalMB = numOf(basis.totalMB);
+      if (totalMB !== null) {
+        const src =
+          basis.from === 'live'
+            ? t('mydash.pv.basis.live', undefined, '라이브 스냅샷')
+            : t('mydash.pv.basis.line', undefined, '장부 줄');
+        basisEl.textContent = t(
+          'mydash.pv.basis',
+          { n: num1(totalMB / 1024), src },
+          '메모리 % 는 총량 {n} GB 기준 ({src})'
+        );
+        basisEl.hidden = false;
+      } else {
+        basisEl.hidden = true;
+        basisEl.textContent = '';
+      }
+
       status(
         t(
           'mydash.pv.status',
@@ -499,9 +570,15 @@ import { t, loadNamespace } from '../../lib/i18n';
     });
   }
 
+  /* 탭 이름은 패널을 열기 전에 그려진다. 묶음을 미리 받아 둔다 (bookmarks 와 같은 손) */
+  void loadNamespace('mydash').catch(() => undefined);
+
   dashRegistry().register({
     id: 'pc-vitals',
-    title: 'PC 성능',
+    /* 탭 이름도 옮긴 말. 셸이 그릴 때 읽으므로 getter */
+    get title(): string {
+      return t('mydash.pv.title', undefined, 'PC 성능');
+    },
     access: 'read',
     paths: [ROOT_DIR + '/<host>/summary.json'],
     render,

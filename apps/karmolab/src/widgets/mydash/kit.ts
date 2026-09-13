@@ -84,6 +84,19 @@ export interface DashRepoWrite extends DashRepoRead {
   nonce: string;
 }
 
+/**
+ * 지금 읽고 있는 저장소 위치. **원본으로 내려가는 링크 조립 전용**.
+ *
+ * 패널은 저장소를 모른다는 규약 유지. 여기 있는 것은 주소를 조립할 이름 셋뿐,
+ * 토큰도 요청도 없음. 값은 셸이 `data/mydash-config.json` 에서 그대로 전달.
+ */
+export interface DashRepoInfo {
+  owner: string;
+  repo: string;
+  /** 읽기 브랜치. 생성기가 굽는 쪽 */
+  branch: string;
+}
+
 /** 그릴 때 셸이 건네는 것. 패널은 이것 말고 바깥을 안 본다. */
 export interface DashPanelCtx<R extends DashRepoRead = DashRepoRead> {
   /**
@@ -92,6 +105,8 @@ export interface DashPanelCtx<R extends DashRepoRead = DashRepoRead> {
    */
   root: HTMLElement;
   repo: R;
+  /** 링크 조립용 저장소 이름 셋. 옛 셸이 안 채웠을 수도 있어 쓰는 쪽에서 없음을 견딜 것 */
+  repoInfo: DashRepoInfo;
   /** 머리말 오른쪽에 한 줄. 굽는 중, 언제 구운 것인가 같은 말. 지난 패널이 부르면 셸이 무시. */
   status(text: string): void;
   /**

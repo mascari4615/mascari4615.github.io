@@ -1012,6 +1012,8 @@ declare const Toolbox:
         const ctx: DashPanelCtx<DashRepoWrite> = {
           root: mine,
           repo,
+          /* 링크 조립용 이름 셋. 패널이 근거에서 원본 파일로 내려갈 때 씀 */
+          repoInfo: { owner: cfg.owner, repo: cfg.repo, branch: cfg.branch || 'main' },
           status,
           isCurrent,
           /* 이미 넘어간 패널이 뒤늦게 맡기면 다음 패널 목록에 섞임. 그 자리에서 치우기. */
