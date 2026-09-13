@@ -49,21 +49,13 @@ const check = (name, cond, detail = '') => {
 
 let cantRun = '';
 
-/* 판이 손님 창까지 오려면 바깥 릴레이를 한 홉 더 탄다. **늦게 옴과 안 옴은 다르다.**
-   45초를 기다리고 빨개진 판에서 바로 뒤에 찍은 상태에는 그 판이 있었다 (2026-09-04 CI).
-   그래서 기다림을 넘기면 한 번 더 본다. 그때 와 있으면 릴레이가 느린 것이라 못 돌림,
-   그래도 없으면 빨강. 못 붙음을 못 돌림으로 보는 것은 이 파일 머리말의 계약 그대로 */
+/* 연결과 상태 수신에 같은 외부 통신 예산 적용. 수신 후 실제 동작까지 검증 */
 async function guestGot(guest, selector, name, extra = '') {
   try {
-    await guest.waitForSelector(selector, { state: 'attached', timeout: 20000 });
+    await guest.waitForSelector(selector, { state: 'attached', timeout: CONNECT_MS });
     check(name, true);
     return true;
   } catch (e) {
-    const late = await guest.locator(selector).count().catch(() => 0);
-    if (late > 0) {
-      cantRun = `손님 창에 판이 20초 안에 안 왔다가 뒤늦게 왔다 (${name}). 바깥 릴레이가 느리다`;
-      return false;
-    }
     const tail = typeof extra === 'function' ? await extra() : extra;
     check(name, false, e.message.slice(0, 60) + (tail ? ' :: ' + tail : ''));
     return false;

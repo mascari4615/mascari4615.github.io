@@ -72,17 +72,28 @@ const total = names.reduce((sum, name) => sum + sizes[name], 0);
 const kb = (n) => `${(n / 1024).toFixed(1)}KB`;
 
 if (UPDATE) {
+  const selected = process.argv.slice(process.argv.indexOf('--update') + 1);
+  const priorData = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : {};
+  const prior = priorData.sizes || {};
+  const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const priorRevision = priorData.sourceCommit || execFileSync('git', ['log', '-1', '--format=%H', '--', 'data/bundle-baseline.json'], { cwd: root, encoding: 'utf8' }).trim();
+  /* 일부만 갱신해도 다른 번들의 비교 시작점 유지 */
+  const sourceCommit = selected.length ? priorRevision : revision;
+  const sourceCommits = selected.length ? { ...priorData.sourceCommits, ...Object.fromEntries(selected.map((name) => [name, revision])) } : {};
+  if (selected.some((name) => sizes[name] == null)) throw new Error('기준선 갱신 대상 번들 없음');
+  const updated = selected.length ? { ...prior, ...Object.fromEntries(selected.map((name) => [name, sizes[name]])) } : sizes;
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
   fs.writeFileSync(
     BASELINE,
-    JSON.stringify({ note: 'gzip 바이트. audit-bundle-budget.mjs --update 로만 갱신한다.', at: new Date().toISOString(), sizes }, null, 1) + '\n',
+    JSON.stringify({ note: 'gzip 바이트. audit-bundle-budget.mjs --update 로만 갱신한다.', at: new Date().toISOString(), sourceCommit, sourceCommits, sizes: updated }, null, 1) + '\n',
     'utf8'
   );
-  console.log(`[bundle-budget] 기준선 갱신. ${names.length}개, 합계 ${kb(total)}`);
+  console.log(`[bundle-budget] 기준선 갱신. ${selected.length || names.length}개, 현재 합계 ${kb(total)}`);
   process.exit(0);
 }
 
-const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')).sizes || {} : null;
+const baselineData = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : null;
+const baseline = baselineData?.sizes || null;
 if (!baseline) {
   /* 기준선이 없으면 래칫은 통과가 아니라 **못 돌림**이다. 절대선만 본 결과를 그렇게 적는다. */
   console.log('[bundle-budget] 기준선 없음. 래칫은 못 돌린다 (`--update` 로 한 번 박아라). 절대선만 본다.');
@@ -176,7 +187,7 @@ for (const name of names) {
   const grew = now - was;
   if (grew >= GROW_BYTES || (now >= was * GROW_RATIO && grew >= GROW_RATIO_MIN_BYTES)) {
     const line = `${name} ${kb(was)} → ${kb(now)} (+${kb(now - was)}, ${((now / was - 1) * 100).toFixed(0)}%)`;
-    if (sourceTouchedSince(baselineCommit, name)) grown.push(line + (historyReachable ? '' : ' (지난 기록을 못 봐서 이유는 모름)'));
+    if (sourceTouchedSince(baselineData.sourceCommits?.[name] || baselineData.sourceCommit || baselineCommit, name)) grown.push(line + (historyReachable ? '' : ' (지난 기록을 못 봐서 이유는 모름)'));
     else fails.push(`${line}. **아무도 안 건드렸는데 커졌다**`);
   }
 }

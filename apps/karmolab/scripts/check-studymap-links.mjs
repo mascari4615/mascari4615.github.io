@@ -38,7 +38,8 @@ async function probe(url, method) {
       headers: { 'user-agent': 'Mozilla/5.0 (compatible; karmolab-linkcheck/1.0)' },
     });
     return res.status;
-  } catch {
+  } catch (error) {
+    console.log(`\n[studymap-links] ${method} ${url}: ${error.cause?.code || error.name}`);
     return 0;
   } finally {
     clearTimeout(timer);
@@ -91,6 +92,35 @@ if (unreachable.length > 20) {
 }
 
 process.stdout.write('\n');
+
+/* Node의 TLS 또는 자동 요청을 받지 않는 사이트는 실제 브라우저로 재확인 */
+const browserTargets = dead.filter((item) => item.status === 0);
+if (browserTargets.length > 0 && browserTargets.length <= 20) {
+  let browser;
+  try {
+    const { chromium } = await import('playwright');
+    browser = await chromium.launch();
+    const context = await browser.newContext({ serviceWorkers: 'block' });
+    for (const item of browserTargets) {
+      const page = await context.newPage();
+      try {
+        const response = await page.goto(item.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        const status = response?.status() || 0;
+        console.log(`[studymap-links] 브라우저 ${status}: ${item.url}`);
+        if (OK_STATUS.has(status)) dead.splice(dead.indexOf(item), 1);
+        else item.status = status;
+      } catch (error) {
+        console.log(`[studymap-links] 브라우저도 못 닿음: ${item.url}, ${error.message.split('\n')[0]}`);
+      } finally {
+        await page.close();
+      }
+    }
+  } catch (error) {
+    console.log(`[studymap-links] 브라우저 재확인 불가: ${error.message.split('\n')[0]}`);
+  } finally {
+    await browser?.close();
+  }
+}
 
 /* ★ **여기서 못 닿았다와 링크가 죽었다는 다른 말이다** (2026-08-14).
    이 검사를 묶음(gates)에 넣었더니 CI 에서만 빨갰다. 못 닿은 둘은 `privacy.go.kr` 과

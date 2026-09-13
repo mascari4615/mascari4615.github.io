@@ -13,6 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { trackMeaning } from './lib/studymap-meaning.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => {
@@ -23,31 +24,31 @@ const read = (p) => {
   }
 };
 const map = read(path.join(ROOT, 'data/studymap.json'));
-const at = read(path.join(ROOT, 'data/studymap-atlas.json'));
-const cache = read(path.join(ROOT, 'tmp/studymap-atlas-cache.json'));
+const at = read(process.env.STUDYMAP_ATLAS_FILE || path.join(ROOT, 'data/studymap-atlas.json'));
+const cache = read(process.env.STUDYMAP_CACHE_FILE || path.join(ROOT, 'tmp/studymap-atlas-cache.json'));
+const proof = read(path.join(ROOT, 'data/studymap-atlas-meaning.json'));
 if (!map || !at) {
   console.log('[studymap-trust] 못 돌림. 지도나 구운 표가 없다');
   process.exit(2);
 }
-if (!cache) {
-  console.log('[studymap-trust] 못 돌림. 곳간이 없다 (`node scripts/build-studymap-atlas.mjs` 를 돌린 기계에서만 잰다)');
+if (!cache && !proof) {
+  console.log('[studymap-trust] 못 돌림. 의미 벡터 자료 없음 (build-studymap-atlas.mjs --meaning-only)');
   process.exit(2);
 }
 const tracks = map.tracks || map;
-const vec = {};
-for (const [id, h] of Object.entries(at.hashes || {})) vec[id] = cache[`${at.tier}:${h}`];
-const mid = tracks.map((t) => {
-  const rows = t.stages.flatMap((s) => s.nodes.map((n) => vec[n.id])).filter(Boolean);
-  if (!rows.length) return null;
-  const d = rows[0].length;
-  const a = new Float64Array(d);
-  for (const v of rows) for (let i = 0; i < d; i += 1) a[i] += v[i];
-  return Array.from(a, (x) => x / rows.length);
-});
-if (mid.some((v) => !v)) {
-  console.log('[studymap-trust] 못 돌림. 곳간이 지금 강의와 다른 판이다 (다시 구워라)');
-  process.exit(2);
+let means;
+if (cache) {
+  const vec = Object.fromEntries(Object.entries(at.hashes || {}).map(([id, h]) => [id, cache[`${at.tier}:${h}`]]));
+  means = trackMeaning(tracks, vec);
+} else {
+  if (proof.tier !== at.tier || JSON.stringify(Object.entries(proof.hashes).sort()) !== JSON.stringify(Object.entries(at.hashes).sort())) {
+    throw new Error('의미 벡터 자료와 지도 강의 판 불일치');
+  }
+  means = proof.tracks;
+  console.log('[studymap-trust] 공개 강의 평균 벡터 사용. 좌표와 독립적인 실제 의미 자료');
 }
+const mid = tracks.map((track) => means[track.id]);
+if (!mid[0]?.length || mid.some((row) => row?.length !== mid[0].length || row.some((v) => !Number.isFinite(v)))) throw new Error('갈래 의미 벡터 누락 또는 손상');
 const cos = (a, b) => {
   let s = 0;
   let na = 0;

@@ -105,6 +105,21 @@ if (!cantRun) {
 
     /* 적으면 그 칸이 굳는다 */
     const before = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
+    /* 클릭 전에 관찰 시작. 봇 차례가 Node 쪽 폴링 사이 끝나도 화면 전이 보존 */
+    await page.evaluate(() => {
+      window.__yachtTurns = [];
+      window.__yachtTurnObserver = new MutationObserver(() => {
+        const game = window.__arcade;
+        const header = document.querySelector('.ac-yctable th[data-turn]');
+        if (!game || !header) return;
+        window.__yachtTurns.push({
+          other: !header.classList.contains('ac-me'),
+          turn: game.state.turn,
+          cells: document.querySelectorAll('.ac-yccell').length,
+        });
+      });
+      window.__yachtTurnObserver.observe(document.querySelector('.ac-ycpaper'), { childList: true, subtree: true });
+    });
     await page.click('.ac-yccell');
     /* 시간으로 기다리면 게이트 통짜에서 밀려 흔들린다(2026-08-31 실측: 단독은 통과, 동시는 실패).
        칸이 굳는 것을 조건으로 기다린다 */
@@ -114,10 +129,14 @@ if (!cantRun) {
     check('적으면 칸이 굳는다', wrote, `${before} -> ${after}`);
 
     /* 남의 차례가 되면 내 칸 버튼이 사라진다(남의 차례에 못 적는다) */
-    const leftTurn = await page.waitForFunction(() => document.querySelectorAll('.ac-yccell').length === 0, null, { timeout: WAIT })
+    const leftTurn = await page.waitForFunction(() => window.__yachtTurns.some((sample) => sample.other), null, { timeout: WAIT })
       .then(() => true).catch(() => false);
-    const cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
-    check('남의 차례에는 적는 칸이 없다', leftTurn, `${cells}개`);
+    const turns = await page.evaluate(() => {
+      window.__yachtTurnObserver.disconnect();
+      return window.__yachtTurns.filter((sample) => sample.other);
+    });
+    check('남의 차례에는 적는 칸이 없다', leftTurn && turns.every((sample) => sample.cells === 0), JSON.stringify(turns));
+    console.log(`[arcade-yacht] 관찰한 봇 차례 ${turns.length}프레임, 입력 칸 ${Math.max(0, ...turns.map((sample) => sample.cells))}개`);
   }
 }
 

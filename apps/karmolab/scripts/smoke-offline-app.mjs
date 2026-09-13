@@ -18,6 +18,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import { WAIT } from './lib/waits.mjs';
+import { stripFrontMatter } from './lib/serve-html.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const problems = [];
@@ -42,7 +43,7 @@ const server = http.createServer((req, res) => {
   fs.readFile(file, (err, body) => {
     if (err) { res.writeHead(404); res.end('not found'); return; }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream' });
-    res.end(body);
+    res.end(path.extname(file) === '.html' ? stripFrontMatter(body.toString('utf8')) : body);
   });
 });
 /* ★ **127.0.0.1 에는 일꾼이 안 붙는다** (2026-08-30, `src/pwa-update.ts`). 개발 서버에서 옛 판을
@@ -56,6 +57,9 @@ const origin = `http://${HOST}:${server.address().port}`;
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 420, height: 860 } });
 const page = await context.newPage();
+const browserErrors = [];
+page.on('pageerror', (e) => browserErrors.push(e.message));
+page.on('console', (m) => { if (m.text().includes('sw register fail')) browserErrors.push(m.text()); });
 
 await page.goto(`${origin}/`, { waitUntil: 'networkidle', timeout: 30000 });
 // 워커가 껍데기를 담을 때까지 기다린다. 담기 전에 끊으면 이 검사는 워커가 아니라 운을 잰다.
@@ -65,7 +69,7 @@ await page
     const cache = await caches.open((await caches.keys()).find((k) => k.startsWith('karmolab-')) ?? 'x');
     return Boolean(await cache.match('/'));
   }, undefined, { timeout: 30000 })
-  .catch(() => problems.push('서비스 워커가 껍데기를 안 담았다. 이 검사는 여기서부터 의미가 없다'));
+  .catch((e) => problems.push(`서비스 워커 캐시 대기 실패: ${e.message}`));
 
 /* 끊기 **전에** 워커 상태를 찍어 둔다. 끊긴 뒤 죽은 창에서는 못 읽는다 (2026-09-04 CI 에서
    실패 줄이 못 읽음만 남았다). 파일이 있나까지 같이 본다. 못 구운 것과 못 받은 것은 다르다 */
@@ -83,6 +87,7 @@ const before = await page.evaluate(async () => {
    없다. 여기서 빨강을 내면 고칠 자리가 없는 경보가 매 판 울린다. 로컬에서는 붙으므로 그물은 그대로 */
 if (/등록 0|제어 false/.test(before)) {
   console.log(`[smoke-offline] 못 돌았다. 이 판에는 서비스 워커가 안 붙었다 (${before} :: ${swFile}). 통과 아님`);
+  console.log(JSON.stringify({ problems, browserErrors }));
   await browser.close();
   server.close();
   process.exit(2);

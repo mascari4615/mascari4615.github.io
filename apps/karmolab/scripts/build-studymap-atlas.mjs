@@ -20,6 +20,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { LOCAL_MODEL, embedAll, removeSharedBias } from '@karmo/meaning';
+import { trackMeaning } from './lib/studymap-meaning.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -109,6 +110,13 @@ const got = await embedAll(items, {
   onFlush: (c) => fs.writeFileSync(CACHE, JSON.stringify(c)),
 });
 if (got.todo) process.stdout.write('\n');
+/* 공개 강의만의 평균 벡터 보존. CI에서 모델 다운로드 없이 같은 품질 검증 */
+fs.writeFileSync(path.join(ROOT, 'data/studymap-atlas-meaning.json'), JSON.stringify({
+  tier: got.tier,
+  hashes: Object.fromEntries(items.map((item) => [item.id, item.hash])),
+  tracks: trackMeaning(tracks, Object.fromEntries(items.map((item, i) => [item.id, got.vectors[i]]))),
+}) + '\n');
+if (process.argv.includes('--meaning-only')) process.exit(0);
 const vectors = removeSharedBias(got.vectors).vectors ?? got.vectors;
 if (vectors.some((v) => !v)) {
   console.log('[studymap-atlas] 못 돌림. 벡터가 빈 칸이 있다 (모델을 못 받았을 수 있다)');

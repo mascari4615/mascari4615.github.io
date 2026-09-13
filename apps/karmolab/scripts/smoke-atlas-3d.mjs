@@ -18,12 +18,13 @@ import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { stripFrontMatter } from './lib/serve-html.mjs';
+import { atlasPath } from './lib/atlas-file.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB = path.resolve(HERE, '..');
 const REPO = path.resolve(KARMOLAB, '..', '..');
 const PAGE = path.join(KARMOLAB, 'tools', 'atlas-3d', 'index.html');
-const ATLAS = process.env.ATLAS_FILE || path.join(KARMOLAB, 'data', 'memo-atlas.json');
+const ATLAS = atlasPath(HERE);
 
 if (!fs.existsSync(PAGE)) { console.log('[atlas-3d] 장이 없다'); process.exit(1); }
 if (!fs.existsSync(ATLAS)) {
@@ -45,8 +46,9 @@ const TYPES = {
 };
 const server = http.createServer((req, res) => {
   const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
-  const full = path.join(REPO, rel);
-  if (!full.startsWith(REPO) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
+  const isAtlas = rel === 'apps/karmolab/data/memo-atlas.json';
+  const full = isAtlas ? ATLAS : path.join(REPO, rel);
+  if ((!isAtlas && !full.startsWith(REPO)) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
     res.writeHead(404); res.end('no'); return;
   }
   const ext = path.extname(full);

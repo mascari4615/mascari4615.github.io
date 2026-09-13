@@ -170,6 +170,7 @@ for (const skin of RUN_SKINS) for (const theme of RUN_THEMES) {
     } catch { /* 사생활 모드 */ }
   }, { theme, skin });
   for (const [name, url] of RUN_SCREENS) {
+    const screenStarted = Date.now();
     const res = await page.goto(`http://localhost:${PORT_IN_USE}${url}`, { waitUntil: 'load' });
     /* ★ **여기서 문제 0건은 안 봤다일 수 있다** (2026-08-21).
      * 이 검사의 합격 조건이 <b>문제 0건</b>이라, 장이 안 열려 화면이 비면 그대로 초록이 된다.
@@ -211,11 +212,15 @@ for (const skin of RUN_SKINS) for (const theme of RUN_THEMES) {
       });
     });
     for (const v of violations) failures.push({ theme: `${skin}/${theme}`, name, ...v });
+    console.log(`[smoke-a11y] ${name}: ${violations.length}종, ${Date.now() - screenStarted}ms`);
   }
   await ctx.close();
 }
 await browser.close();
-server.close();
+await new Promise((resolve) => {
+  server.close(resolve);
+  server.closeAllConnections();
+});
 if (tempPage) fs.rmSync(tempPage, { recursive: true, force: true });
 
 /* ★ 기준선(래칫). 처음 켰더니 36곳이 이미 어겨져 있었다. 다 고칠 때까지 게이트를 안 켜면
