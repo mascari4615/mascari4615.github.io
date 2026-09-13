@@ -12,6 +12,20 @@ permalink: /changes.xml
     <language>ko</language>
     <lastBuildDate>Sun, 13 Sep 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[고침] 본문 감사와 지도 생성의 수집 경로 통합</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-b99c49b5d</guid>
+      <pubDate>Sun, 13 Sep 2026 00:00:00 GMT</pubDate>
+      <description>본문 감사와 지도 생성의 수집 경로 통합</description>
+    </item>
+    <item>
+      <title>[고침] 이름 검사를 생성 때와 같은 자료로 대조</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-5d590c057</guid>
+      <pubDate>Sun, 13 Sep 2026 00:00:00 GMT</pubDate>
+      <description>이름 검사를 생성 때와 같은 자료로 대조</description>
+    </item>
+    <item>
       <title>[고침] 선택된 화면이 없으면 검사 통과 방지</title>
       <link>https://blog.mascari4615.com/#status</link>
       <guid isPermaLink="false">karmolab-change-c42b29035</guid>
@@ -206,20 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-7d6fc8d50</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
       <description>정원을 멍의 요소로 합침, 정원 위젯 폐기</description>
-    </item>
-    <item>
-      <title>[고침] 정원 열면 시뮬 10개가 동시에 돌던 것</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-4f4e5f7e8</guid>
-      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>정원 열면 시뮬 10개가 동시에 돌던 것</description>
-    </item>
-    <item>
-      <title>[새로 생김] 로비에 열 판만 세우고 번개 대결을 오락실로 들인다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-2d6274e28</guid>
-      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>로비에 열 판만 세우고 번개 대결을 오락실로 들인다</description>
     </item>
   </channel>
 </rss>
