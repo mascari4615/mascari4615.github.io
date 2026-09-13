@@ -221,6 +221,7 @@ apps/handheld/unity/HandheldLogs/
 # atlas.sources.json 은 소스(비공개 폴더 경로) 정의라 같이 뺀다.
 apps/karmolab/data/memo-atlas.json
 apps/karmolab/data/.memo-atlas-*.json
+apps/karmolab/data/.bite/
 apps/karmolab/data/.link-bodies.json
 apps/karmolab/data/atlas.sources.json
 
