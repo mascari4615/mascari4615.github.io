@@ -149,6 +149,12 @@ const ONLY = (process.env.KL_A11Y_ONLY || '').split(',').map((x) => x.trim()).fi
 /** 실제로 돌 화면. 전수 판에서는 도구 전부 */
 const RUN_SCREENS = (ALL ? allToolScreens() : SCREENS)
   .filter(([name, url]) => !ONLY.length || ONLY.some((q) => name.includes(q) || url.includes(q)));
+if (!RUN_SCREENS.length) {
+  console.error('[smoke-a11y] CANNOT-RUN: 선택한 검사 화면이 0장이다. KL_A11Y_ONLY와 KL_A11Y_ALL을 확인');
+  await browser.close();
+  server.close();
+  process.exit(2);
+}
 /** 전수 판은 스킨과 판을 하나로 줄인다 */
 const RUN_SKINS = ALL ? [SKINS[0]] : SKINS;
 const RUN_THEMES = ALL ? [THEMES[THEMES.length - 1]] : THEMES;
