@@ -2430,7 +2430,7 @@ window.KARMOLAB_LAZY_META = [
     get title() { return t('widgets.arcade.title', undefined, "오락실"); },
     category: '',
     get desc() { return t('widgets-desc.arcade.desc', undefined, "여러 미니게임을 혼자서도 여럿이서도 합니다. 사람이 모자란 자리는 봇이 앉습니다"); },
-    layout: 'wide',
+    layout: 'full',
     noHero: true,
     icon: '<rect x="3" y="7" width="18" height="12" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 11v4M6 13h4M15 12.5h.01M17.5 15h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['arcade/arcade']
