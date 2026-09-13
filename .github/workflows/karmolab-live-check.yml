@@ -67,7 +67,7 @@ jobs:
       run:
         working-directory: apps/karmolab
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ★ **짓기 전 채비는 한 곳에서** (2026-08-13, `.github/actions/setup-karmolab`).
       #   여기 서른 줄이 배포, verify, 카모그래프 워크플로와 같은 내용을 각자 들고 있었다.
@@ -92,7 +92,7 @@ jobs:
       # (조각 셋이 각자 이슈를 열면 같은 빨강이 세 번 운다. 늘 우는 경보는 꺼진 경보다.)
       - name: 빨간 검사 이름 남기기
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: live-red-${{ strategy.job-index }}
           path: apps/karmolab/live-check-red-*.txt
@@ -108,14 +108,14 @@ jobs:
     if: ${{ always() && needs.check.result != 'skipped' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
 
       - name: 조각들이 남긴 빨강 모으기
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: live-red-*
           path: reds
@@ -150,7 +150,7 @@ jobs:
       #   이제 ① 빨간 검사 이름을 적고 ② 직전 댓글과 **같은 조합이면 또 적지 않는다**.
       - name: 실패하면 이슈로 알린다
         if: ${{ needs.check.result != 'success' || failure() }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -209,7 +209,7 @@ jobs:
       #   328개 댓글을 달고 몇 달째 열려 있었다. 열려 있음이 아무 뜻도 없어지면 경보는 죽는다.
       - name: 초록이면 경보를 닫는다
         if: ${{ needs.check.result == 'success' && success() }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const NL = String.fromCharCode(10);
