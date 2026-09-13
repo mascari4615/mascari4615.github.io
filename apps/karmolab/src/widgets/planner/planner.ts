@@ -90,7 +90,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-mini-day { font-size: var(--font-size-3xs); padding: 4px 0; border: none; background: none; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; position: relative; }
         .pl-mini-day:hover { background: var(--bg-tertiary); }
         .pl-mini-day--out { color: var(--text-tertiary); }
-        .pl-mini-day--today { background: var(--accent); color: #fff; font-weight: 700; }
+        .pl-mini-day--today, .pl-mini-day--today:hover { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
         .pl-mini-day--busy::after { content: ''; position: absolute; left: 50%; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: currentColor; transform: translateX(-50%); }
 
         .pl-cal-list-title { font-size: var(--font-size-xs); color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px; }
