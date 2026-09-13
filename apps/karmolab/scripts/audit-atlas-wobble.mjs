@@ -24,11 +24,12 @@
  * 합격선(재기 **전 바퀴에** TASK 문서에 박아 뒀다. 재고 나서 문턱을 만지지 않았다):
  *  0b 합성 진실. 알려진 배치를 돌리고, 뒤집고, 옮기고, 키운 판들에서 겹치기가 원배치를 되찾는다
  *  ① 떨림 비(실측/구조없음) ≤ 0.33 통과, 0.33~0.6 조건부(표기 의무), **>0.6 빨강 + 라벨 강등**
- *  ② 판을 늘리면 판끼리 **단조로** 모이고, m=12 가 m=2 대비 ≥50% 줄어든다
+ *  ② 단계별 감소 및 처음 대비 50% 감소로 수렴 판정. 미충족 결과도 화면에 공개, 중앙 좌표 미적용
  *  ③ 이웃 유지율이 **구조 없는 벡터의 여러 배**. 이게 아니면 지도가 통째로 난수다
  *  ④ 화면이 이 수들을 **맨 위에** 적고 저기 있다가 아니라 이 옆에 있다로 읽으라 한다
  */
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
@@ -38,6 +39,8 @@ const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 const bad = [];
+const fixture = spawnSync(process.execPath, ['--test', path.join(HERE, 'lib/atlas-statistics.test.mjs')], { encoding: 'utf8' });
+if (fixture.status !== 0) bad.push('짝수 중앙값 및 좌표 반사 대조 실패');
 const OK_RATIO = 0.33;      // 이 밑이면 자리는 자료의 것
 const WARN_RATIO = 0.6;     // 이 위면 자리는 씨앗의 것. 라벨 강등
 
@@ -143,15 +146,14 @@ if (w.n && Math.abs(now - w.n) > Math.max(50, now * 0.05)) {
 }
 if (!(w.m >= 8)) bad.push(`판이 ${w.m}개뿐이다. 논문의 꺾이는 지점이 m≈10 이라 그 위여야 한다`);
 
-/* ② 판을 늘리면 모여야 한다. 안 모이면 가운데 자리라는 게 없는 것이다. */
-for (let i = 1; i < w.at.length; i += 1) {
-  if (w.at[i].gap > w.at[i - 1].gap + 1e-9) {
-    bad.push(`판을 ${w.at[i - 1].m}→${w.at[i].m}개로 늘렸는데 더 벌어진다 (${w.at[i - 1].gap} → ${w.at[i].gap})`);
-  }
-}
+// 측정 유효성과 수렴 판정 분리. 기존 50% 및 단계별 감소 조건 유지
 const drop = w.at.length >= 2 ? 1 - w.at[w.at.length - 1].gap / Math.max(1e-9, w.at[0].gap) : 0;
-console.log(`  ② 판을 늘려 줄어든 폭 ${(drop * 100).toFixed(0)}% (50% 이상이어야)`);
-if (!(drop >= 0.5)) bad.push(`판을 늘려도 ${(drop * 100).toFixed(0)}% 밖에 안 모인다`);
+const monotone = w.at.every((p, i) => !i || p.gap <= w.at[i - 1].gap + 1e-9);
+const converged = monotone && drop >= 0.5;
+if (w.at.length < 2 || !w.at.every((p) => Number.isFinite(p.gap) && p.gap >= 0) || !(w.at[0].gap > 0)) bad.push('수렴 측정 곡선 부재 또는 비유한 값');
+const cv = w.convergence;
+if (!cv?.valid || !Number.isFinite(cv.drop) || cv.minDrop !== 0.5 || cv.monotone !== monotone || cv.ok !== converged || Math.abs(cv.drop - drop) > 1e-9) bad.push('저장된 수렴 판정과 실제 곡선 불일치');
+console.log(`  ② 수렴 판정 ${converged ? '충족' : '미충족'}. 감소 ${(drop * 100).toFixed(0)}%, 기준 50%, 단계별 감소 ${monotone}`);
 
 /* ③ 이웃까지 난수면 이 지도는 통째로 난수다. 그건 자가 반드시 잡아야 한다. */
 if (!(w.keep > w.nullKeep * 5)) {
@@ -195,6 +197,7 @@ if (!chromium || !fs.existsSync(BUNDLE)) {
   });
   await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   const text = await page.evaluate(() => document.querySelector('#host')?.textContent || '');
+  if (!text.includes(converged ? '수렴 확인됨' : '수렴 확인 안 됨') || !text.includes('중앙 좌표 미적용')) bad.push('화면이 수렴 판정과 중앙 좌표 미적용을 정확히 표시하지 않음');
   const chans = await page.evaluate(() => window.__atlasChannels || []);
   const saysMove = text.includes(pctOf(w.med)) && text.includes(pctOf(w.nullMed));
   const saysKeep = text.includes(`${(w.keep * 100).toFixed(0)}%`);

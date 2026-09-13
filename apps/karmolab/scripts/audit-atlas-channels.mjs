@@ -39,10 +39,11 @@ try { ({ chromium } = await import('playwright')); } catch {
 const atlas = JSON.parse(fs.readFileSync(ATLAS, 'utf8'));
 const bundle = fs.readFileSync(BUNDLE, 'utf8');
 const bad = [];
+if (new Set(atlas.lanes).size !== atlas.lanes.length) bad.push('갈래 ID 중복');
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
 
-async function look(mutate) {
+async function look(mutate, lanePage = 0) {
   const copy = JSON.parse(JSON.stringify(atlas));
   if (mutate) mutate(copy);
   const page = await ctx.newPage();
@@ -67,11 +68,13 @@ async function look(mutate) {
   });
   await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
   await page.click('#host [data-layout="lane"]');
+  for (let i = 0; i < lanePage; i += 1) await page.click('#host [data-lane-next]');
   await untilSettled(page, () => page.evaluate(() => window.__atlasBudget));
   const out = await page.evaluate(() => ({
     budget: window.__atlasBudget,
     howto: document.querySelector('#host .atlas-howto')?.textContent || '',
     channels: window.__atlasChannels || [],
+    legend: [...document.querySelectorAll('#host [data-lane]')].map((el) => ({ lane: el.dataset.lane, hue: el.dataset.hue, shape: el.dataset.shape, glyph: !!el.querySelector('svg > *') })),
   }));
   await page.close();
   return out;
@@ -98,23 +101,27 @@ if (b.pairClash > 0) {
 }
 
 // ④ 갈래를 늘려 짝이 겹치게 만들면 빨개지나 (자가 진짜 무는지)
-const more = await look((a) => {
-  /* 갈래를 스물로 늘린다. 색 여덟, 모양 예닐곱이라 짝이 반드시 겹친다.
-     이름은 지금 갈래에서 파생시킨다(박아 두지 않는다). */
+const extra = (a) => {
+  // 40조합을 넘는 자료의 전체 갈래 접근과 페이지별 구분 검증
   const base = a.lanes.slice();
-  while (a.lanes.length < 20) a.lanes.push(`${base[a.lanes.length % base.length]}-${a.lanes.length}`);
-});
-console.log(`  ④ 갈래를 ${more.budget?.groups}가지로 늘리면. 색 겹침 ${more.budget?.hueClash}, 짝 겹침 ${more.budget?.pairClash}`);
-if (!more.budget || more.budget.pairClash === 0) {
-  bad.push('갈래를 스물로 늘려도 짝이 안 겹친다고 한다. 이 자는 채널을 안 세고 있다');
+  while (a.lanes.length < 81) a.lanes.push(`${base[a.lanes.length % base.length]}-${a.lanes.length}`);
+};
+const pages = [];
+for (let i = 0; i < 3; i += 1) pages.push(await look(extra, i));
+console.log(`  ④ 81갈래 페이지별 표시 ${pages.map((p) => p.budget?.groups).join(', ')}`);
+for (const p of [now, ...pages]) {
+  const pairs = new Set(p.legend.map((l) => `${l.hue}|${l.shape}`));
+  if (pairs.size !== p.legend.length || p.legend.some((l) => !l.glyph)) bad.push('실제 범례 조합 중복 또는 모양 부재');
+  if (p.budget?.groups !== p.legend.length || p.budget?.pairClash) bad.push('범례와 채널 예산 불일치');
 }
+if (new Set(pages.flatMap((p) => p.legend.map((l) => l.lane))).size !== 81) bad.push('페이지 전환 후 갈래 누락');
 
 await browser.close();
 
 if (bad.length) {
   console.log('[channels] **채널이 감당할 가짓수를 넘었는데 말이 없다**');
   for (const x of bad) console.log('  - ' + x);
-  console.log('  색 목록(CLUSTER_COLORS), 모양 표(LANE_SHAPE), 읽는 법 띠를 봐라.');
+  console.log('  색 목록(CLUSTER_COLORS), 모양 목록(LANE_SHAPES), 범례 페이지를 봐라.');
   process.exit(1);
 }
 console.log(`[channels] 색 ${b.hues}가지로 갈래 ${b.groups}가지를 나르되, 겹치는 건 말하고 모양으로 가른다`);

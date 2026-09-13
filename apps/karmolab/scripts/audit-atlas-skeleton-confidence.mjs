@@ -69,7 +69,7 @@ function binGroups(pts, bins, overlap, min, shift = 0) {
 }
 
 /** 스무 판을 흔들며 마디마다 **가장 닮은 짝의 자카드**를 모은다 (문턱은 아직 안 건다). */
-function survivalOf(pts, bins, overlap, min, seed0 = 29) {
+function survivalOf(pts, bins, overlap, min, seed0 = 29, project = (kept) => kept) {
   const base = binGroups(pts, bins, overlap, min).map((g) => g.map((p) => p.id));
   if (!base.length) return { nodes: 0, mean: 0, J: [] };
   let seed = seed0;
@@ -81,7 +81,7 @@ function survivalOf(pts, bins, overlap, min, seed0 = 29) {
     const keepIds = new Set(kept.map((p) => p.id));
     /* **눈금판도 민다.** 글만 빼면 마디는 늘 살아남는다. 마디를 정하는 게 자료가 아니라
        눈금 자리이기 때문이다(이 자가 처음 잡은 빨강: 마구 섞은 점도 89% 살아남았다). */
-    const sets = binGroups(kept, bins, overlap, min, rnd()).map((g) => new Set(g.map((p) => p.id)));
+    const sets = binGroups(project(kept), bins, overlap, min, rnd()).map((g) => new Set(g.map((p) => p.id)));
     for (let i = 0; i < base.length; i += 1) {
       const A = base[i].filter((id) => keepIds.has(id));
       if (!A.length) { J[i].push(0); continue; }
@@ -164,8 +164,8 @@ if (!fs.existsSync(ATLAS)) {
 /* 지어낸 자료에서 되는 것과 **우리 지도에서 되는 것**은 다르다. 같은 점 개수, 같은
    손잡이로, 자리만 마구 섞어 견준다. 안 떨어지면 화면에 적은 수는 자료의 것이 아니다. */
 function lensPts(coords, kind) {
-  if (kind === 'x') return coords.map((c, i) => ({ id: `d${i}`, f: c[0], g: c[1] }));
-  if (kind === 'y') return coords.map((c, i) => ({ id: `d${i}`, f: c[1], g: c[0] }));
+  if (kind === 'x') return coords.map((c, i) => ({ id: `d${i}`, f: c[0], g: c[1], xy: c }));
+  if (kind === 'y') return coords.map((c, i) => ({ id: `d${i}`, f: c[1], g: c[0], xy: c }));
   const n = coords.length;
   const val = new Float64Array(n);
   if (kind === '괴짜성') {
@@ -191,7 +191,7 @@ function lensPts(coords, kind) {
       val[i] = c ? 1 / (sum / c + 1e-9) : 0;
     }
   }
-  return coords.map((c, i) => ({ id: `d${i}`, f: val[i], g: c[0] }));
+  return coords.map((c, i) => ({ id: `d${i}`, f: val[i], g: c[0], xy: c }));
 }
 
 if (atlas?.skeleton?.params && Array.isArray(atlas.docs)) {
@@ -200,12 +200,15 @@ if (atlas?.skeleton?.params && Array.isArray(atlas.docs)) {
   if (coords.length >= 100) {
     let seed = 101;
     const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
-    const mine = survivalOf(lensPts(coords, lens || 'x'), bins, overlap, min);
+    // 삭제 후 남은 점으로 렌즈 재계산. ID는 원래 문서에 고정
+    const project = (kept) => lensPts(kept.map((p) => p.xy), lens || 'x')
+      .map((p, i) => ({ ...p, id: kept[i].id }));
+    const mine = survivalOf(lensPts(coords, lens || 'x'), bins, overlap, min, 29, project);
     /* 자리만 섞는다. 점 개수도, 퍼진 범위도 그대로다. 없앤 것은 **구조뿐**이다. */
     const lo = [Math.min(...coords.map((c) => c[0])), Math.min(...coords.map((c) => c[1]))];
     const hi = [Math.max(...coords.map((c) => c[0])), Math.max(...coords.map((c) => c[1]))];
     const shuf = coords.map(() => [lo[0] + rnd() * (hi[0] - lo[0]), lo[1] + rnd() * (hi[1] - lo[1])]);
-    const rand = survivalOf(lensPts(shuf, lens || 'x'), bins, overlap, min);
+    const rand = survivalOf(lensPts(shuf, lens || 'x'), bins, overlap, min, 29, project);
     const cf = atlas.skeleton.confidence;
     const curve = SWEEP.map((t) => ({ at: t, mine: rateAt(mine.J, t), rand: rateAt(rand.J, t) }))
       .map((c) => ({ ...c, gap: c.mine - c.rand }));

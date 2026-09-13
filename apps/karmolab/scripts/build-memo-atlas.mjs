@@ -16,6 +16,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { findDuplicates } from './lib/atlas-duplicates.mjs';
+import { mleId, naiveId } from './lib/atlas-idim.mjs';
+import { coordinateMedian, convergenceOf } from './lib/atlas-statistics.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
@@ -333,6 +336,7 @@ function collectBlog() {
       done: false,
       bytes: raw.length,
       text,
+      duplicateText: raw,
       hash: crypto.createHash('sha1').update(text).digest('hex').slice(0, 12),
       /* **사람이 손으로 붙인 분류**. 앞머리의 `categories: [컴퓨터, 프로그래밍]`.
          우리 자는 전부 안쪽 잣대(자기 자신에게만 물어본다)라, 이게 유일한 **바깥 라벨**이다.
@@ -380,6 +384,7 @@ function collect() {
           done: /\/done\//.test(rel) || meta.status === 'done' || meta.status === 'sealed',
           bytes: raw.length,
           text,
+          duplicateText: raw,
           hash: crypto.createHash('sha1').update(text).digest('hex').slice(0, 12),
         });
         n += 1;
@@ -1809,27 +1814,6 @@ function nearDists(dist, n, kmax) {
   return out;
 }
 
-/** Levina-Bickel MLE. `inv` 가 참이면 **역수 평균**(MacKay-Ghahramani 보정). */
-function mleId(near, k, inv = true) {
-  let acc = 0; let cnt = 0;
-  const per = [];
-  for (const row of near) {
-    const Tk = row[k - 1];
-    if (!(Tk > 0)) continue;
-    let s = 0; let m = 0;
-    for (let j = 0; j < k - 1; j += 1) {
-      const Tj = row[j];
-      if (!(Tj > 0)) continue;
-      s += Math.log(Tk / Tj); m += 1;
-    }
-    if (!m) continue;
-    acc += s; cnt += m;
-    per.push(m / s);
-  }
-  if (inv) return cnt ? cnt / acc : 0;
-  return per.length ? per.reduce((a, b) => a + b, 0) / per.length : 0;
-}
-
 /** TwoNN. μ = r₂/r₁ 의 경험 CDF 에 원점을 지나는 직선을 맞춘다. */
 function twoNN(near) {
   const mu = [];
@@ -1868,7 +1852,7 @@ function idOf(vecs, ks = ID_KS) {
   return {
     twoNN: Number(twoNN(near).toFixed(2)),
     mle: ks.map((k) => ({ k, id: Number(mleId(near, k).toFixed(2)) })),
-    naive: Number(mleId(near, ks[1] ?? ks[0], false).toFixed(2)),
+    ...naiveId(near, ks[1] ?? ks[0]),
   };
 }
 
@@ -1884,7 +1868,7 @@ function intrinsicDim(vectors, dist, n, seed = 777) {
   const ours = {
     twoNN: Number(twoNN(near).toFixed(2)),
     mle: ID_KS.map((k) => ({ k, id: Number(mleId(near, k).toFixed(2)) })),
-    naive: Number(mleId(near, 10, false).toFixed(2)),
+    ...naiveId(near, 10),
   };
 
   let st = seed >>> 0;
@@ -5296,108 +5280,15 @@ function nearestByMeaning(ok, docs, k = 8) {
   console.log(`[atlas] 닮은 글 ${k}개씩, ${((Date.now() - t0) / 1000).toFixed(1)}초`);
 }
 
-/**
- * **겹치는 글**(쌍둥이)을 찾는다. Nomic Atlas 가 주제 라벨과 나란히 다는 그 주석.
- *
- * 왜 지금: 블로그 글을 같은 판에 부으면 **같은 생각이 두세 번** 놓인다(발행 글 ↔ 초안 ↔
- * 북마크한 원문). 표시 안 하면 지도가 **없는 밀도**를 만들어 두 개의 생각처럼 보인다.
- *
- * 문턱은 **박지 않는다.** 가장 닮은 하나의 닮은 정도를 다 모아 놓고, 문턱을 0.99 에서
- * 내리며 쌍이 몇 개 잡히는지 센다. 처음엔 천천히 늘다가 어느 지점에서 **터진다** . 
- * 그 직전이 진짜 겹침과 그냥 비슷함의 경계다. 곡선을 통째로 실어 보낸다.
- */
+/** 전체 본문 기준 중복 표시. 임베딩 이웃과 독립된 판정 */
 function twinsOf(ok, docs) {
-  const pairs = new Map();
-  for (let i = 0; i < ok.length; i += 1) {
-    const j = ok[i].topIdx;
-    if (j == null || j < 0) continue;
-    const key = i < j ? `${i}|${j}` : `${j}|${i}`;
-    const sim = ok[i].topSim;
-    if (!pairs.has(key) || pairs.get(key) < sim) pairs.set(key, sim);
+  const result = findDuplicates(docs);
+  for (const d of docs) {
+    delete d.twin;
+    if (result.representatives.has(d.id)) d.twin = result.representatives.get(d.id);
   }
-  const all = [...pairs.entries()].map(([k, sim]) => [...k.split('|').map(Number), sim]);
-  const curve = [];
-  for (let t = 0.99; t >= 0.895; t -= 0.005) {
-    curve.push({ t: Number(t.toFixed(3)), n: all.filter(([, , s]) => s >= t).length });
-  }
-  /* **터지는 자리 직전**을 고른다. 한 칸 내릴 때 늘어난 수가 그 전 칸의 세 배를 넘으면
-     거기서부터는 그냥 비슷한 글이 쏟아지는 구간이다. */
-  let chosen = curve[0].t;
-  let prevGrow = Math.max(1, curve[1].n - curve[0].n);
-  for (let i = 2; i < curve.length; i += 1) {
-    const grow = curve[i].n - curve[i - 1].n;
-    if (grow > prevGrow * 3 && grow > 5) break;
-    chosen = curve[i].t;
-    prevGrow = Math.max(1, grow);
-  }
-  /**
-   * ★ **바닥을 재서 깐다**. 곡선이 평평하면 위 규칙은 끝값(0.9)까지 걸어 내려간다.
-   * 그 자리가 **남남끼리도 닿는 높이**면 겹침이 아닌 것을 겹침이라 하게 된다.
-   * 그래서 아무 쌍이나 뽑아 **남남의 최고 닮음**을 재고, 문턱은 그보다 위에서만 고른다.
-   * (실측 2026-08-23: 글이 749→757 로 늘자 남남 최고가 0.883 → 0.911 로 올라 0.9 를 넘겼다.
-   *  코드는 그대로였는데 자료가 움직여 오탐 2쌍이 생겼다. 박은 값이 아니라 재는 값이어야 한다.)
-   */
-  let st = 20260823;
-  const rnd = () => { st = (st * 1664525 + 1013904223) >>> 0; return st / 4294967296; };
-  const dot = (a, b) => {
-    let s = 0;
-    for (let t = 0; t < a.length; t += 1) s += a[t] * b[t];
-    return s;
-  };
-  let strangers = -1;
-  const TRIES = 2000;
-  for (let t = 0; t < TRIES && ok.length > 2; t += 1) {
-    const i = Math.floor(rnd() * ok.length);
-    const j = Math.floor(rnd() * ok.length);
-    if (i === j) continue;
-    /* 진짜 겹침 쌍은 남남이 아니다. 표본에서 뺀다. */
-    if (ok[i].topIdx === j || ok[j].topIdx === i) continue;
-    const s = dot(ok[i].v, ok[j].v);
-    if (s > strangers) strangers = s;
-  }
-  const floorAt = strangers > 0 ? Math.ceil((strangers + 0.005) * 200) / 200 : null;
-  const raised = floorAt != null && chosen < floorAt;
-  if (raised) chosen = Number(floorAt.toFixed(3));
-  /* 이어진 것끼리 한 무리로 묶고(초안↔발행↔재발행) **가장 긴 글을 대표**로 둔다. */
-  const parent = new Array(ok.length).fill(-1);
-  const find = (x) => { while (parent[x] >= 0) x = parent[x]; return x; };
-  let marked = 0;
-  for (const [i, j, sim] of all) {
-    if (sim < chosen) continue;
-    const a = find(i); const b = find(j);
-    if (a !== b) parent[a] = b;
-  }
-  /* **뿌리도 무리의 식구다.** 처음엔 부모가 없으면 혼자로 걸렀는데 그게 무리마다
-     대표(뿌리)를 통째로 빼 버려서, 쌍 17개가 무리 2개로 줄었다. 먼저 다 담고
-     **식구가 둘 이상인 무리만** 남긴다. */
-  const groups = new Map();
-  for (let i = 0; i < ok.length; i += 1) {
-    const r = find(i);
-    if (!groups.has(r)) groups.set(r, []);
-    groups.get(r).push(i);
-  }
-  for (const [r, m] of [...groups]) if (m.length < 2) groups.delete(r);
-  for (const members of groups.values()) {
-    if (members.length < 2) continue;
-    const rep = members.reduce((a, b) => (ok[a].d.bytes >= ok[b].d.bytes ? a : b));
-    for (const m of members) {
-      if (m === rep) continue;
-      ok[m].d.twin = ok[rep].d.id;
-      marked += 1;
-    }
-  }
-  const stat = {
-    at: chosen, pairs: all.filter(([, , s]) => s >= chosen).length, marked,
-    groups: [...groups.values()].filter((g) => g.length >= 2).length, curve,
-    /* 남남 최고 닮음(잰 바닥)과 그 바닥이 문턱을 밀어 올렸나. 화면, 자가 그대로 읽는다. */
-    strangers: strangers > 0 ? Number(strangers.toFixed(4)) : null, floorAt, raised, strangerTries: TRIES,
-  };
-  console.log(`[atlas] 겹침 곡선 ` + curve.filter((_, i) => i % 4 === 0).map((c) => `${c.t}:${c.n}`).join(' '));
-  console.log(`[atlas] 겹치는 글. 문턱 ${chosen}`
-    + (raised ? ` (**남남 최고 ${stat.strangers} 이 곡선 값보다 높아 밀어 올렸다**)` : ' (곡선에서 터지기 직전)')
-    + `, 남남 최고 ${stat.strangers} (아무 쌍 ${TRIES}번)`
-    + `, 쌍 ${stat.pairs}개, 무리 ${stat.groups}개, 대표 아닌 글 ${marked}개`);
-  return stat;
+  console.log(`[atlas] 본문 겹침 ${result.stat.method}, 문턱 ${result.stat.at}, 쌍 ${result.stat.pairs}, 무리 ${result.stat.groups}, 표시 ${result.stat.marked}`);
+  return result.stat;
 }
 
 
@@ -5788,9 +5679,10 @@ async function initLadder(vectors, params, opts = {}) {
  * MCE 의 마지막 단계가 MDS(전역 스트레스)라 **국소 구조를 팔아 안정성을 살 수 있고**,
  * 그걸 막는 비퇴행 게이트를 먼저 세워야 하기 때문이다.
  */
-const WOB_M = 12;                 // 판 수. 논문의 꺾이는 지점이 m≈10 이라 그 위로 잡았다
-const WOB_SEEDS = [42, 7, 1009, 33, 2718, 8191, 5, 60613, 314, 77, 1234, 999];
-const WOB_AT = [1, 2, 3, 6];      // k판짜리 합의 지도를 몇 개씩 만들어 서로 견줄지
+const WOB_M = 24;                 // 반씩 나눈 합의 지도에도 12표본 확보
+const WOB_SEEDS = [42, 7, 1009, 33, 2718, 8191, 5, 60613, 314, 77, 1234, 999,
+  101, 211, 307, 401, 503, 601, 701, 809, 907, 1103, 1201, 1301];
+const WOB_AT = [1, 2, 3, 6, 12];
 
 /** 두 점 집합을 겹친다. 돌리기, 뒤집기, 평행이동, 크기까지 맞춘다(Procrustes). */
 function fitTo(A, B) {
@@ -5861,7 +5753,7 @@ async function wobbleOf(vectors, params, seeds) {
   /* 가운데 자리 = 판들의 좌표 중앙값(평균이 아니다. 튄 판 하나에 안 끌려간다). */
   const mid = [];
   for (let i = 0; i < n; i += 1) {
-    mid.push([medOf(fitted.map((r) => r[i][0])), medOf(fitted.map((r) => r[i][1]))]);
+    mid.push([coordinateMedian(fitted.map((r) => r[i][0])), coordinateMedian(fitted.map((r) => r[i][1]))]);
   }
   const r = [];
   for (let i = 0; i < n; i += 1) {
@@ -5924,7 +5816,7 @@ async function seedWobble(vectors, params, opts = {}) {
 
   const midOf = (rs) => {
     const out = [];
-    for (let i = 0; i < rs[0].length; i += 1) out.push([medOf(rs.map((r) => r[i][0])), medOf(rs.map((r) => r[i][1]))]);
+    for (let i = 0; i < rs[0].length; i += 1) out.push([coordinateMedian(rs.map((r) => r[i][0])), coordinateMedian(rs.map((r) => r[i][1]))]);
     return out;
   };
   /**
@@ -5948,7 +5840,7 @@ async function seedWobble(vectors, params, opts = {}) {
   const splitGap = Number(runGap(midOf(halfA), midOf(halfB)).toFixed(5));
 
   return {
-    m, seeds, at: closeness, splitGap,
+    m, seeds, at: closeness, splitGap, convergence: convergenceOf(closeness),
     /* **언제 잰 값인지**. `--씨앗` 을 줄 때만 도니까, 자가 옛날 값으로 말하고 있나를 봐야 한다. */
     n: vectors.length, dim,
     med: Number(medOf(real.r).toFixed(5)), p90: Number(qOf(real.r, 0.9).toFixed(5)),
@@ -7242,7 +7134,8 @@ function collectAll() {
   return docs;
 }
 
-export { collect, collectAll, collectBookmarksAll, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
+export { collect, collectAll, collectBookmarksAll, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies,
+  embedAll, removeSharedBias, wobbleOf, fitTo, runGap };
 
 async function main() {
   requireSources();   // 굽기는 소스가 있어야 한다. config 오류, 없는 root 는 여기서 분명히 죽는다
@@ -7256,6 +7149,35 @@ async function main() {
   let docs = collectAll();
   docs.sort((a, b) => a.id.localeCompare(b.id));
   if (limit) docs = docs.slice(0, limit);
+  if (flag('--refresh-seeds') || flag('--refresh-seed-summary')) {
+    const previous = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+    const saved = new Map(previous.docs.map((d) => [d.id, d.hash]));
+    if (saved.size !== docs.length || docs.some((d) => saved.get(d.id) !== d.hash)) {
+      throw new Error('기존 지도와 현재 수집 자료 불일치. 전체 지도 생성 필요');
+    }
+    if (flag('--refresh-seed-summary')) {
+      const measuredPath = path.join(path.dirname(OUT), '.memo-atlas-seeds-refreshed.json');
+      const measured = JSON.parse(fs.readFileSync(measuredPath, 'utf8'));
+      const withoutWobble = ({ wobble, ...rest }) => JSON.stringify(rest);
+      if (withoutWobble(measured) !== withoutWobble(previous)) throw new Error('재측정 산출물의 지도 본문 불일치');
+      measured.wobble.convergence = convergenceOf(measured.wobble.at);
+      if (!measured.wobble.convergence.valid) throw new Error('수렴 측정 자료 부재');
+      fs.writeFileSync(measuredPath, JSON.stringify(measured));
+      console.log('[atlas] 수렴 판정 요약', JSON.stringify(measured.wobble.convergence));
+      return;
+    }
+    const vectors = removeSharedBias(await embedAll(docs));
+    if (vectors.some((v) => !v)) throw new Error('씨앗 재측정용 벡터 누락');
+    if (!previous.umap || !previous.space?.bias
+      || biasMean.some((v, i) => Math.abs(v - previous.space.bias[i]) > 1e-8)) throw new Error('기존 지도와 임베딩 공간 불일치');
+    const measured = await seedWobble(vectors, { nn: previous.umap.nn, md: previous.umap.md });
+    previous.wobble = { ...measured, mid: undefined };
+    const target = path.join(path.dirname(OUT), '.memo-atlas-seeds-refreshed.json');
+    fs.writeFileSync(target, JSON.stringify(previous));
+    console.log('[atlas] 씨앗 재측정', JSON.stringify({ m: measured.m, at: measured.at, ratio: measured.ratio, ms: measured.ms }));
+    console.log(`[atlas] 기존 지도 유지. 재측정 산출물 ${target}`);
+    return;
+  }
   console.log(`[atlas] 글 ${docs.length}개, 갈래 ${new Set(docs.map((d) => d.lane)).size}개`);
 
   /* ★ drift gate. 지난 판보다 30% 넘게 줄면 죽는다. 폴더 개편이 소스 정의를 비껴가면
@@ -7907,7 +7829,7 @@ let serOut = null;     // 어긋남 요약. 찢김, 거짓 이웃 (CheckViz)
     lonelyStat,
     /* 지난 판에 포갠 결과. 0 에 가까울수록 어제 여기 있던 게 오늘도 여기다. */
     align: alignInfo,
-    docs: docs.map(({ text, ...rest }) => ({
+    docs: docs.map(({ text, duplicateText, ...rest }) => ({
       ...rest,
       xy: coords?.get(rest.id) || null,
       axis: axisCoords?.get(rest.id) || null,

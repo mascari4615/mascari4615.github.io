@@ -17,8 +17,10 @@
  * 문턱은 재기 **전에** 박았다(TASK 문서, 앞 바퀴): 겹침 20%, 거짓 이웃 0.10.
  * 둘 다 밑이면 **안 묶는다**. 그리고 그 숫자를 남긴다. 힘 배치를 안 쓰기로 한 때와 같은 방식.
  *
- * ③ 자가 진짜 무는지도 여기서 본다: **이음을 열 배로 늘리면** 두 수가 올라가야 한다.
- *   (안 올라가면 이 자는 선을 안 보고 있는 것이다.)
+ * ③ 이음 열 배 대조와 불투명 선 및 도려내기 제거 대조.
+ * 2026-09-13 정정: 같은 stroke의 겹침은 별도 alpha 레이어의 누적과 다름.
+ * 관계선의 실제 그리기 명령을 투명 캔버스에 재생해 얻은 픽셀로 판정.
+ * https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-stroke
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -57,7 +59,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 } });
 
 /** 이음을 몇 배로 부풀린 지도를 띄우고 선분, 점을 받아 온다. */
-async function measure(times, ignoreKnock = false) {
+async function measure(times, ignoreKnock = false, bright = false) {
   const copy = JSON.parse(JSON.stringify(atlas));
   if (times > 1) {
     const base = copy.edges.slice();
@@ -76,10 +78,50 @@ async function measure(times, ignoreKnock = false) {
     return r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
   });
   await page.goto('http://localhost/');
-  await page.evaluate(() => {
+  await page.evaluate((bright) => {
     window.__reg = {};
     window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {} };
-  });
+    // 위젯의 실제 경로와 스타일을 투명 레이어에 재생. 바탕 픽셀 혼입 방지
+    const proto = CanvasRenderingContext2D.prototype;
+    const stroke = proto.stroke; const fill = proto.fill; const clear = proto.clearRect;
+    const frames = new WeakMap(); const paths = new WeakMap();
+    const begin = proto.beginPath;
+    proto.beginPath = function () { paths.set(this, new Path2D()); return begin.call(this); };
+    for (const key of ['moveTo', 'lineTo', 'rect', 'arc', 'closePath']) {
+      const original = proto[key];
+      proto[key] = function (...args) { paths.get(this)?.[key](...args); return original.apply(this, args); };
+    }
+    proto.clearRect = function (...args) { frames.set(this, {}); return clear.apply(this, args); };
+    const snapshot = (ctx) => ({ width: ctx.canvas.width, height: ctx.canvas.height,
+      pixels: ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data });
+    proto.stroke = function (...args) {
+      const edge = this.canvas.matches?.('.atlas-canvas') && /^rgba?\(150,170,210[,)]/.test(String(this.strokeStyle).replaceAll(' ', ''));
+      const frame = frames.get(this);
+      const original = this.strokeStyle;
+      if (edge && bright) this.strokeStyle = 'rgba(150,170,210,1)';
+      const result = stroke.apply(this, args);
+      if (edge && frame && !frame.layer) {
+        const cv = document.createElement('canvas'); cv.width = this.canvas.width; cv.height = this.canvas.height;
+        const layer = cv.getContext('2d'); frame.layer = layer;
+        for (const key of ['strokeStyle', 'lineWidth', 'lineCap', 'lineJoin', 'globalAlpha', 'globalCompositeOperation']) layer[key] = this[key];
+        layer.setTransform(this.getTransform()); layer.setLineDash(this.getLineDash());
+        stroke.call(layer, args[0] instanceof Path2D ? args[0] : paths.get(this));
+        window.__edgeRasterRaw = snapshot(layer);
+      }
+      this.strokeStyle = original;
+      return result;
+    };
+    proto.fill = function (...args) {
+      const result = fill.apply(this, args); const frame = frames.get(this);
+      if (this.canvas.matches?.('.atlas-canvas') && this.globalCompositeOperation === 'destination-out' && frame?.layer && !frame.cut) {
+        const layer = frame.layer; layer.globalCompositeOperation = this.globalCompositeOperation;
+        layer.globalAlpha = this.globalAlpha; layer.fillStyle = this.fillStyle; layer.setTransform(this.getTransform());
+        fill.call(layer, paths.get(this));
+        window.__edgeRasterCut = snapshot(layer); frame.cut = true;
+      }
+      return result;
+    };
+  }, bright);
   await page.addScriptTag({ content: bundle });
   await page.evaluate(() => {
     const h = document.createElement('div');
@@ -93,40 +135,25 @@ async function measure(times, ignoreKnock = false) {
     const segs = window.__atlasEdgeSegs || [];
     const dots = window.__atlasDotScreen || [];   // **화면 좌표**. 지도 좌표로 견주면 아무것도 안 잡힌다
     const alpha = window.__atlasEdgeAlpha ?? 1;
-    const cv = document.querySelector('#host .atlas-canvas');
-    const W = cv.width; const H = cv.height;
-    /* 선을 칸(1픽셀)에 찍어 **몇 겹**인지 센다. 겹칠수록 짙어진다: 1−(1−a)^n. */
+    const raster = ignoreKnock ? window.__edgeRasterRaw : window.__edgeRasterCut;
+    if (!raster?.pixels) throw new Error('실제 관계선 픽셀 캡처 부재');
+    const W = raster.width; const H = raster.height;
+    // 한 픽셀을 지나는 서로 다른 선 수. 짙기는 위젯의 실제 경로 재생 결과
     const grid = new Uint16Array(W * H);
-    /* **점 둘레는 화면에서 도려내진다**(위젯이 `destination-out` 으로 지운다). 그 자리는
-       선이 안 보이므로 여기서도 빼고 센다. 안 빼면 그리려 한 것을 재게 되고,
-       화면에서 이미 고친 것을 못 고쳤다고 한다. 반지름은 위젯이 알려 준 값을 그대로 쓴다
-       (여기서 다시 정하면 어느 날 둘이 갈라진다). */
+    // 도려내기 역시 실제 사각 경로와 합성 연산을 거친 픽셀 기준
     const knock = ignoreKnock ? 0 : (window.__atlasEdgeKnock || 0);
-    const blocked = new Uint8Array(W * H);
-    if (knock > 0) {
-      const r = Math.ceil(knock);
-      for (const p of dots) {
-        if (!p) continue;
-        const cx = Math.round(p[0]); const cy = Math.round(p[1]);
-        for (let dx = -r; dx <= r; dx += 1) {
-          for (let dy = -r; dy <= r; dy += 1) {
-            if (dx * dx + dy * dy > knock * knock) continue;
-            const x = cx + dx; const y = cy + dy;
-            if (x < 0 || y < 0 || x >= W || y >= H) continue;
-            blocked[y * W + x] = 1;
-          }
-        }
-      }
-    }
     let drawn = 0;
     for (const [x1, y1, x2, y2] of segs) {
+      const visited = new Set();
       const steps = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1)));
       for (let s = 0; s <= steps; s += 1) {
         const x = Math.round(x1 + ((x2 - x1) * s) / steps);
         const y = Math.round(y1 + ((y2 - y1) * s) / steps);
         if (x < 0 || y < 0 || x >= W || y >= H) continue;
         const i = y * W + x;
-        if (blocked[i]) continue;              // 도려내진 자리 = 화면에 없는 선
+        if (!raster.pixels[i * 4 + 3]) continue;
+        if (visited.has(i)) continue;          // 같은 선의 반올림 중복은 겹친 선이 아님
+        visited.add(i);
         if (grid[i] === 0) drawn += 1;
         grid[i] += 1;
       }
@@ -139,7 +166,7 @@ async function measure(times, ignoreKnock = false) {
       const n = grid[i];
       if (!n) continue;
       if (n >= 2) over += 1;
-      if (1 - Math.pow(1 - alpha, n) >= seeAt) seenPix += 1;
+      if (n >= 2 && raster.pixels[i * 4 + 3] / 255 >= seeAt) seenPix += 1;
     }
     /* ② 거짓 이웃. **보이는 선** 위에 얹힌 점. 자기 이음의 끝점이면 거짓말이 아니다.
        ⚠ 아무 선의 끝점이면 빼기로 하면 안 된다. 선을 열 배로 늘리자 거의 모든 점이
@@ -155,7 +182,7 @@ async function measure(times, ignoreKnock = false) {
     const visible = (x, y) => {
       const xi = Math.round(x); const yi = Math.round(y);
       const n = (xi >= 0 && yi >= 0 && xi < W && yi < H) ? grid[yi * W + xi] : 0;
-      return n > 0 && 1 - Math.pow(1 - alpha, n) >= seeAt;
+      return n > 0 && raster.pixels[(yi * W + xi) * 4 + 3] / 255 >= seeAt;
     };
     let lied = 0; let seenDots = 0;
     for (const p of dots) {
@@ -182,22 +209,23 @@ async function measure(times, ignoreKnock = false) {
    (미니맵 자에서 위젯 셈을 옮겨 적었다가 8.8% 를 잘못 잡은 적이 있다.) */
 const one = await measure(1);
 const ten = await measure(10);
-/* **도려내기를 끄고도 재 본다.** 지금 거짓 이웃이 0% 인 건 점 둘레를 도려내기 때문인데,
-   그게 없을 때도 0% 라면 이 자는 아무것도 안 재는 것이다(도려내기 전에는 35.2% 였다). */
-const raw = await measure(1, true);
+// 실제 선을 밝히고 도려내기 제거. 나쁜 표시가 기존 한도를 넘는지 확인
+const raw = await measure(1, true, true);
 await browser.close();
 
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 console.log(`[edges] 선 ${one.segs}개, 점 ${one.dots}개`);
 console.log(`  ① 보이는 겹침 ${pct(one.overplot)} (문턱 ${pct(OVERPLOT_LINE)}), 잉크로만 세면 ${pct(one.inkOverlap)}, 선 짙기 ${one.alpha}`);
 console.log(`  ② 거짓 이웃 ${pct(one.falseNear)}. 남의 선 위에 얹힌 점 ${one.lied}개 (문턱 ${pct(FALSE_LINE)})`);
-console.log(`  ③ 선을 열 배로 → 겹침 ${pct(ten.overplot)}, 거짓 이웃 ${pct(ten.falseNear)}`);
-console.log(`  ④ 점 둘레 도려내기를 끄면 → 거짓 이웃 ${pct(raw.falseNear)} (도려내기 반지름 ${one.knock})`);
+console.log(`  ③ 선을 열 배로 → 잉크 겹침 ${pct(one.inkOverlap)}→${pct(ten.inkOverlap)}, 보이는 겹침 ${pct(ten.overplot)}`);
+console.log(`  ④ 실제 선을 불투명하게 만들고 도려내기를 끄면 → 겹침 ${pct(raw.overplot)}, 거짓 이웃 ${pct(raw.falseNear)} (원래 도려내기 반지름 ${one.knock})`);
 
 const bad = [];
 if (!(ten.overplot > one.overplot + 0.01) && !(ten.falseNear > one.falseNear + 0.01)) {
   bad.push('선을 열 배로 늘려도 두 수가 안 오른다. 이 자는 선을 안 보고 있다');
 }
+if (!one.drawn) bad.push('관계선 실제 픽셀 부재');
+if (!(raw.overplot > OVERPLOT_LINE || raw.falseNear > FALSE_LINE)) bad.push('불투명 선과 도려내기 제거 대조가 실패를 유발하지 않음');
 /* ★ 선이 100개 미만은 그리기 고장 검사였는데, 코퍼스가 줄어 이음 자체가 52개가 되자
    (1918편, 877이음 → 749편, 52이음) 헛빨강이 됐다. 고장은 **지도의 이음 수보다 덜 그릴 때**다. */
 const edgeCount = Array.isArray(atlas.edges) ? atlas.edges.length : 0;

@@ -103,7 +103,8 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
   /** **씨앗 떨림**. 같은 손잡이로 씨앗만 바꿔 여러 판 구웠을 때 자리가 얼마나 달라지나. */
   type Wobble = { m: number; n: number; med: number; p90: number; nullMed: number; nullP90: number;
     ratio: number; single: number; splitGap: number; keep: number; keepP10: number; nullKeep: number;
-    at: Array<{ m: number; gap: number }> };
+    at: Array<{ m: number; gap: number }>;
+    convergence?: { valid: boolean; drop: number | null; monotone: boolean; ok: boolean; minDrop: number } };
   /** **초기화 사다리**. 자리를 물려주는 초기값을 바꿔 보고 잰 표. 졌으면 진 대로 싣는다. */
   type InitLadder = { used: boolean; ceiling: number; base: number; margin: number;
     table: Array<{ name: string; r: number }>; top: string[];
@@ -113,7 +114,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     control: { name: string; r: number; rLo: number; rHi: number; wobble: number; keep: number } | null };
   /** **고유차원**. 이 무더기가 몇 차원짜리인가. 2차원 종이에 담기는가. */
   type Idim = { ambient: number; n: number; id: number;
-    ours: { twoNN: number; naive: number; mle: Array<{ k: number; id: number }> };
+    ours: { twoNN: number; naive: number | null; naiveState?: string; naiveSingular?: number; naiveSamples?: number; mle: Array<{ k: number; id: number }> };
     shuffled: { twoNN: number; mle: Array<{ k: number; id: number }> };
     noise: { twoNN: number; mle: Array<{ k: number; id: number }> };
     calibration: Array<{ truth: number; twoNN: number; mle: number }> };
@@ -561,27 +562,9 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
        색   = 어느 덩어리        크기 = 글 길이
        모양 = 어느 갈래에서 왔나  테두리 = 묻혔나
      갈래를 색으로 또 칠하지 않는 이유가 이것이다. */
-  /* ★ **갈래마다 명시 등재한다.** 색은 자리 순서(i%8)라 여덟 건너 같은 색이 돌아온다 . 
-     같은 색 갈래끼리는 여기서 모양을 갈라 (색,모양) 짝을 다르게 만든다. 새 갈래가 생겨
-     여기 없으면 동그라미로 떨어져 짝이 겹치고, 채널 예산 자가 빨개진다. 그게 신호다
-     (memo 개편으로 갈래가 11→19 가 되며 실제로 그랬다). */
-  const LANE_SHAPE: Record<string, number> = {
-    WM: 3,            // 게임 = 세모
-    KarmoLab: 4,      // 랩 = 네모
-    '욘봇': 5,         // 봇 = 오각
-    karmoddrine: 6,   // 우산 = 육각
-    '룰': 0,           // 룰 = 동그라미
-    '외장뇌': 0,
-    '노트': 5,          // 색 2번에서 changes 와 짝이 겹쳐 오각으로 (2026-09-01)
-    '시스템': 5,         // 색 1번에서 career 와 짝이 겹쳐 오각으로 (2026-09-01)
-    '인생': 3,
-    '블로그': 0,
-    assistant: 0, learning: 3, stuff: 4,       // 같은 색(0번) 세 갈래
-    career: 4,                                  // 노트(0), WM(3) 과 같은 색
-    changes: 0, projects: 4,
-    characters: 0, design: 0, hobby: 3,
-    'laptop-ops': 0, skills: 3,
-  };
+  // 한 화면의 색과 모양 조합. 초과 갈래는 다음 페이지에서 표시
+  const LANE_SHAPES = [0, 3, 4, 5, 6];
+  const LANE_CAPACITY = CLUSTER_COLORS.length * LANE_SHAPES.length;
 
   /** 꼭짓점 수가 0 이면 동그라미, 아니면 그 수만큼의 각진 도형. */
   function markPath(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, sides: number): void {
@@ -1133,10 +1116,22 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       fitBounds();
     }
 
+    let lanePage = 0;
+    const lanePages = (): number => Math.max(1, Math.ceil((atlas?.lanes.length || 0) / LANE_CAPACITY));
+    function lanesNow(): string[] {
+      lanePage = Math.min(lanePage, lanePages() - 1);
+      return (atlas?.lanes || []).slice(lanePage * LANE_CAPACITY, (lanePage + 1) * LANE_CAPACITY);
+    }
+    function laneChannel(lane: string): { hue: number; shape: number } {
+      const i = Math.max(0, atlas?.lanes.indexOf(lane) ?? 0) % LANE_CAPACITY;
+      return { hue: i % CLUSTER_COLORS.length, shape: LANE_SHAPES[Math.floor(i / CLUSTER_COLORS.length)] };
+    }
+
     function computePositionsInner(): void {
       if (!atlas) return;
       placed.clear();
-      const docs = atlas.docs.filter((d) => d.xy);
+      const active = new Set(lanesNow());
+      const docs = atlas.docs.filter((d) => d.xy && (layout !== 'lane' || active.has(d.lane)));
       if (layout === 'meaning' || layout === 'skeleton') {
         for (const d of docs) placed.set(d.id, d.xy!);
         return;
@@ -1469,13 +1464,12 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     function channelBudget(): { groups: number; hues: number; hueClash: number; pairClash: number; where: string } | null {
       if (!atlas) return null;
       if (layout === 'lane') {
-        const lanes = atlas.lanes || [];
+        const lanes = lanesNow();
         const seenHue = new Map<number, string>();
         const seenPair = new Map<string, string>();
         let hueClash = 0; let pairClash = 0;
-        lanes.forEach((lane, i) => {
-          const hue = i % CLUSTER_COLORS.length;
-          const shape = LANE_SHAPE[lane] ?? 0;
+        lanes.forEach((lane) => {
+          const { hue, shape } = laneChannel(lane);
           if (seenHue.has(hue)) hueClash += 1; else seenHue.set(hue, lane);
           const key = `${hue}|${shape}`;
           if (seenPair.has(key)) pairClash += 1; else seenPair.set(key, lane);
@@ -1556,6 +1550,10 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       }
       out.push(['색', `큰 ${groupWord()}`], ['크기', '글 길이'], ['모양', '갈래']);
       if (layout === 'axis') out[0] = ['자리', '전체를 가르는 큰 두 방향'];
+      if (layout === 'lane') {
+        out[0] = ['자리', '갈래별 묶음']; out[1] = ['색과 모양', '범례의 갈래'];
+        if (lanePages() > 1) out.push(['갈래 페이지', `${lanePage + 1}/${lanePages()}, 전체 ${atlas?.lanes.length}갈래 중 ${lanesNow().length}개 표시. 범례에서 다음 갈래 선택`]);
+      }
       out.push(['흰 선', '손 얹은 글이 부르는 글']);
       if (chosen && chosen.near && chosen.near.length) out.push(['주황 점선', '뜻으로 닮은 글']);
       if (buriedOn) out.push(['노란 테두리', '묻힌 글']);
@@ -1605,6 +1603,11 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
        */
       const wb = atlas?.wobble;
       if (wb) {
+        const cv = wb.convergence;
+        out.push(['합의 자리 검사', cv?.valid
+          ? `${cv.ok ? '수렴 확인됨' : '수렴 확인 안 됨'}. 줄어든 폭 ${Math.round((cv.drop ?? 0) * 100)}%, 기준 50%.`
+            + ` 단계별 감소 ${cv.monotone ? '충족' : '미충족'}. 중앙 좌표 미적용.`
+          : '수렴 판정 자료 없음. 중앙 좌표 미적용.']);
         const dia = Math.SQRT2;      // 자리는 0~1 두 축이라 대각선이 √2 다
         const pct = (v: number): string => (v / dia * 100).toFixed(1) + '%';
         /* 세 갈래로 말한다. 반쯤과 씨앗의 것은 다른 말이다. */
@@ -1614,7 +1617,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
           : half ? '⚠ 자리는 반쯤 씨앗이 정한다' : '자리는 자료가 정한다',
           `씨앗만 바꿔 **${wb.m}판**을 구우면 점이 화면 대각선의 **${pct(wb.med)}**씩 움직인다`
           + ` (90분위 ${pct(wb.p90)}). **구조가 아예 없는 난수 벡터로 구우면 ${pct(wb.nullMed)}**`
-          + `. 우리 쪽이 덜 움직이지만 그 **${wb.ratio}배**다.`
+          + `. 우리 쪽 움직임은 대조군의 **${wb.ratio}배**다.`
           + (mostly ? ' 즉 **자리는 대체로 난수가 정한다.**' : half ? ' 즉 **자리의 절반쯤은 난수가 정한다.**' : '')
           + ` **믿을 것은 이웃 관계**. 화면 이웃 여덟 중 판을 바꿔도 그대로인 비율이`
           + ` **${(wb.keep * 100).toFixed(0)}%** 다(구조 없는 벡터면 ${(wb.nullKeep * 100).toFixed(1)}%,`
@@ -1636,6 +1639,9 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
         out.unshift(['⚠ 이 무더기는 2차원이 아니다',
           `재 보니 **약 ${Math.round(idm.id)}차원**이다`
           + ` (이웃 둘로 재면 ${idm.ours.twoNN}, 이웃 ${idm.ours.mle.map((m) => `${m.k}명이면 ${m.id}`).join(', ')}).`
+          + (idm.ours.naiveState === 'infinite'
+            ? ` 보정 전 평균은 발산했다 (같은 이웃 거리 ${idm.ours.naiveSingular}/${idm.ours.naiveSamples}곳).`
+            : idm.ours.naive != null ? ` 보정 전 평균 ${idm.ours.naive}.` : ' 보정 전 평균 측정값 없음.')
           + ` **축을 따로 섞어 상관을 없애면 ${Math.round(idm.shuffled.twoNN)}차원**으로 뛰니, 이 낮은 수는 진짜 구조다.`
           + (cal ? ` 그리고 이건 **하한**이다. 같은 표본 수로 **${cal.truth}차원인 걸 알고 있는 자료**를 재면`
             + ` ${cal.twoNN}/${cal.mle} 로 낮게 나온다.` : '')
@@ -2004,6 +2010,29 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
 
     function refreshLegend(): void {
       if (!atlas) return;
+      if (layout === 'lane') {
+        legend.innerHTML = lanesNow().map((lane) => {
+          const { hue, shape } = laneChannel(lane);
+          const [r, g, b] = rgbOf(hue);
+          const points = Array.from({ length: shape }, (_, i) => {
+            const angle = -Math.PI / 2 + i * 2 * Math.PI / shape;
+            return `${7 + Math.cos(angle) * 6},${7 + Math.sin(angle) * 6}`;
+          }).join(' ');
+          const glyph = shape ? `<polygon points="${points}"/>` : '<circle cx="7" cy="7" r="5"/>';
+          return `<span class="atlas-chip" data-lane="${esc(lane)}" data-hue="${hue}" data-shape="${shape}" style="--c:${r},${g},${b}">`
+            + `<svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">${glyph}</svg> ${esc(lane)}</span>`;
+        }).join('');
+        if (lanePages() > 1) {
+          legend.insertAdjacentHTML('beforeend', `<button data-lane-prev ${lanePage === 0 ? 'disabled' : ''}>이전 갈래</button>`
+            + `<span>${lanePage + 1}/${lanePages()}</span><button data-lane-next ${lanePage === lanePages() - 1 ? 'disabled' : ''}>다음 갈래</button>`);
+          for (const [selector, delta] of [['[data-lane-prev]', -1], ['[data-lane-next]', 1]] as const) {
+            legend.querySelector(selector)?.addEventListener('click', () => {
+              lanePage += delta; view = { x: 0, y: 0, scale: 1 }; computePositions(); draw();
+            });
+          }
+        }
+        return;
+      }
       const li = levelIndex();
       const names = li >= 0 ? atlas.levels[li].names : atlas.clusterNames;
       /* 범례는 **색이 실제로 뜻하는 것**만 보여준다 = 가장 성긴 층. 지금 보는 층의
@@ -2320,7 +2349,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       /* 범례와 낭독기용 표는 **밀거나 당길 때 바뀌지 않는다**. 층, 배치, 손잡이가 바뀔
          때만 다시 짠다. 매 판 30줄짜리 표를 새로 쓰고 있었다(토막 재기: 0.8ms).
          지금 상태를 한 줄로 접어 두고, 달라졌을 때만 손댄다. */
-      const sideKey = [levelIndex(), layout, buriedOn, lieOn, meetOn, lonelyOn, denseOn, egoDepth, diffMode, trailOn, timeAt, query, atlas.count, chosen ? chosen.id : ''].join('|');
+      const sideKey = [levelIndex(), layout, lanePage, buriedOn, lieOn, meetOn, lonelyOn, denseOn, egoDepth, diffMode, trailOn, timeAt, query, atlas.count, chosen ? chosen.id : ''].join('|');
       if (sideKey !== lastSideKey) {
         lastSideKey = sideKey;
         refreshLegend();
@@ -2676,7 +2705,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
           : d.twin ? paint(cg, 0.30 * cAlpha, true)      // 거의 같은 글 = 대표가 따로 있다
             : d.done ? paint(cg, 0.40 * cAlpha, true)    // 끝난 것은 가라앉힌다
               : paint(cg, 0.88 * cAlpha, terrainOn);
-        markPath(ctx, x, y, size, LANE_SHAPE[d.lane] ?? 0);
+        markPath(ctx, x, y, size, laneChannel(d.lane).shape);
         ctx.fill();
         /* 작은 점에 얇은 어두운 테두리. 큰 점 위에 얹혀도 윤곽이 남는다.
            색을 안 쓰므로 다른 뜻과 안 부딪친다. */
@@ -3650,7 +3679,9 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     });
 
     const terrainBtn = root.querySelector('[data-terrain]') as HTMLElement | null;
+    let beforeTerrainCount = '';
     terrainBtn?.addEventListener('click', () => {
+      if (!terrainOn) beforeTerrainCount = countEl.innerHTML;
       terrainOn = !terrainOn;
       terrainBtn.classList.toggle('on', terrainOn);
       draw();
@@ -3660,7 +3691,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
         ? '<b>' + esc(`지형. 높이 = 몰린 정도, 경계는 없다. 봉우리 ${tf?.peaks ?? '?'}개`
           + ` (두드러짐 문턱 ${tf?.cut ?? '?'}, 되뽑기 ${tf?.runs ?? '?'}판)`
           + `, 높낮이 ${tf?.relief ?? '?'} (고르게 흩으면 ${tf?.base ?? '?'}). 덩어리 색은 물러난다`) + '</b>'
-        : '';
+        : beforeTerrainCount;
       refreshHowto();
     });
 
@@ -3799,7 +3830,10 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
         draw();
       });
     });
-    window.addEventListener('resize', () => draw());
+    // 도구 모음과 읽는 법의 높이 변경도 캔버스 크기 변경으로 반영
+    const canvasResize = new ResizeObserver(() => draw());
+    canvasResize.observe(canvas);
+    (box as { onDispose?: (fn: () => void) => void } | undefined)?.onDispose?.(() => canvasResize.disconnect());
 
     /**
      * 지도가 아무 말도 안 하면 보는 사람이 스스로 찾아야 한다. 원래 목적이

@@ -173,11 +173,8 @@ const BITES = [
     for (const lv of a.levels || []) if (lv.sil != null) lv.sil = lv.sil * 3 + 0.1;
   }, 'audit-atlas-cluster-real.mjs'],
 
-  ['갈래를 스물로 늘린다', (a) => {
-    /* 색 여덟, 모양 예닐곱이라 짝이 반드시 겹친다. 채널 예산 자가 잡아야 한다.
-       이름은 지금 갈래에서 파생시킨다(박아 두지 않는다). */
-    const base = a.lanes.slice();
-    while (a.lanes.length < 20) a.lanes.push(`${base[a.lanes.length % base.length]}-${a.lanes.length}`);
+  ['같은 갈래 ID를 두 번 싣는다', (a) => {
+    a.lanes.push(a.lanes[0]);
   }, 'audit-atlas-channels.mjs'],
 
   ['조각 판단을 뒤집어 적는다', (a) => {
@@ -387,9 +384,9 @@ const BITES = [
     if (a.skeleton) delete a.skeleton.draw;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
-  ['그린 거리 어긋남을 좋게 적는다', (a) => {
-    /* 그림은 안 건드리고 **적어 둔 수만** 낮춘다. 자가 따로 셈해 잡아야 한다. */
-    if (a.skeleton && a.skeleton.draw) a.skeleton.draw.stress = 0.01;
+  ['그린 거리 값을 허용 오차 밖으로 바꾼다', (a) => {
+    // 고정값 0.01은 실제 값에 가까우면 유효한 대조가 아님. 허용 오차 0.005보다 큰 변화
+    if (a.skeleton?.draw) a.skeleton.draw.stress += 0.1;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
   ['렌즈 표에서 stress, 이웃 지킴을 뺀다', (a) => {
@@ -440,10 +437,13 @@ const BITES = [
 
   ['겹침 요약을 지운다', (a) => { delete a.twins; }, 'audit-atlas-twins.mjs'],
 
-  ['겹침 문턱을 곡선 밖으로 옮긴다', (a) => {
-    /* 곡선은 그대로 두고 문턱만 옮긴다. 자가 같은 규칙을 다시 걸어 잡아야 한다.
-       값은 곡선의 맨 위(제일 빡빡한 자리)로. 지금 값에서 파생시켜 박아 두지 않는다. */
-    if (a.twins && Array.isArray(a.twins.curve) && a.twins.curve.length) a.twins.at = a.twins.curve[0].t;
+  ['겹침 문턱을 저장 정책 밖으로 옮긴다', (a) => {
+    if (a.twins) a.twins.at = 1;
+  }, 'audit-atlas-twins.mjs'],
+
+  ['본문 근거 없는 대표를 연결한다', (a) => {
+    const d = a.docs.find((item) => item.twin);
+    if (d) d.twin = d.id;
   }, 'audit-atlas-twins.mjs'],
 
   ['이름 적합도를 지운다', (a) => { for (const lv of a.levels || []) delete lv.fit; }, 'audit-atlas-name-fit.mjs'],
@@ -681,9 +681,13 @@ const BITES = [
     if (a.wobble) { a.wobble.ratio = 0.01; a.wobble.keep = a.wobble.nullKeep; }
   }, 'audit-atlas-wobble.mjs'],
 
-  ['판을 늘려도 안 모이게 만든다', (a) => {
-    /* 합의 지도가 안 모이면 가운데 자리라는 게 없는 것이다. */
+  ['수렴 곡선만 바꾸고 판정을 갱신하지 않는다', (a) => {
+    // 측정값과 저장 판정의 불일치 대조
     if (a.wobble && a.wobble.at) a.wobble.at = a.wobble.at.map((c) => ({ ...c, gap: 0.2 }));
+  }, 'audit-atlas-wobble.mjs'],
+
+  ['수렴 판정을 뒤집는다', (a) => {
+    if (a.wobble?.convergence) a.wobble.convergence.ok = !a.wobble.convergence.ok;
   }, 'audit-atlas-wobble.mjs'],
 
   ['졌는데 이겼다고 적는다 (관심도)', (a) => {

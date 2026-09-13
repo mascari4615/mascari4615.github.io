@@ -117,17 +117,19 @@ if (!fs.existsSync(ATLAS)) {
       const bundle = fs.readFileSync(BUNDLE, 'utf8');
       const browser = await chromium.launch();
       const page = await (await browser.newContext({ viewport: { width: 1400, height: 900 } })).newPage();
+      let renderAtlas = atlas;
       await page.route('**/*', (r) => {
         const u = new URL(r.request().url());
         if (u.pathname.endsWith('/data/memo-atlas.json')) {
-          return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(atlas) });
+          return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(renderAtlas) });
         }
         return r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' });
       });
-      await page.goto('http://localhost/');
-      await page.evaluate(() => {
-        window.__reg = {};
-        window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, onDispose() {} };
+      async function open() {
+        await page.goto('http://localhost/');
+        await page.evaluate(() => {
+          window.__reg = {};
+          window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, onDispose() {} };
       });
       await page.addScriptTag({ content: bundle });
       await page.evaluate(() => {
@@ -137,6 +139,8 @@ if (!fs.existsSync(ATLAS)) {
         window.__reg['memo-atlas'].tabs[0].build(h);
       });
       await page.waitForFunction(() => Array.isArray(window.__atlasLabelBoxes), undefined, { timeout: 30000 });
+      }
+      await open();
       await page.click('#host [data-more]');
       await page.click('#host [data-layout="skeleton"]');
       await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
@@ -152,7 +156,19 @@ if (!fs.existsSync(ATLAS)) {
       await untilSettled(page, () => page.evaluate(() => JSON.stringify([window.__atlasScale, window.__atlasVisible, window.__atlasPlaced?.length, window.__atlasLabelBoxes?.length, document.querySelector('#host')?.textContent?.length])));
       const drawn = await page.evaluate(() => window.__atlasLoopsDrawn);
       console.log(`  ② 켜면 그리나. 굵게 그린 고리 ${drawn}개`);
-      if (!(drawn > 0)) bad.push('고리를 켰는데 아무것도 안 그린다');
+      if (drawn !== Math.min(8, h1.loops.length)) bad.push('저장된 고리 수와 그린 수 불일치');
+      // 실제 고리가 없는 지도에서도 양성 그림 대조 유지
+      renderAtlas = structuredClone(atlas);
+      renderAtlas.skeleton.nodes = renderAtlas.skeleton.nodes.slice(0, 3);
+      renderAtlas.skeleton.links = [[0, 1], [1, 2], [2, 0]];
+      renderAtlas.skeleton.h1 = { ...h1, rank: 1, comps: 1, shortest: 3, loops: [[0, 1, 2]] };
+      await open();
+      await page.click('#host [data-more]');
+      await page.click('#host [data-layout="skeleton"]');
+      await page.click('#host [data-loop]');
+      const control = await page.evaluate(() => window.__atlasLoopsDrawn);
+      console.log(`  ④ 삼각 고리 그림 대조 ${control}개`);
+      if (control !== 1) bad.push('삼각 고리 그림 대조 실패');
       await browser.close();
     }
   }

@@ -122,11 +122,11 @@ const look = () => page.evaluate(() => {
     ink += r + g + b;
     sat += Math.max(r, g, b) - Math.min(r, g, b);
   }
-  return { ink: Math.round(ink / 1000), sat: Math.round(sat / 1000) };
+  return { ink: Math.round(ink / 1000), sat: Math.round(sat / 1000), width: cv.width, height: cv.height };
 });
 
 await page.click('#host [data-more]');
-const before = await look();
+const before = await untilSettled(page, look);
 const off = await page.evaluate(() => window.__atlasTerrain);
 if (off && off.on) bad.push('켜지도 않았는데 지형이 켜져 있다');
 
@@ -220,8 +220,9 @@ if (!saysCut) bad.push('화면이 두드러짐 문턱과 되뽑기 판 수를 �
 
 /* 끄면 도로 색이 산다. 끄기가 안 되면 켜 봤다가 아니라 돌이킬 수 없다다. */
 await page.click('#host [data-terrain]');
-await page.waitForTimeout(250);
-const back = await look();
+const back = await untilSettled(page, look);
+console.log(`  캔버스 ${before.width}x${before.height} → ${back.width}x${back.height}`);
+if (before.width !== back.width || before.height !== back.height) bad.push('끄기 후 캔버스 크기 미복원');
 console.log(`  ① 끄면. 색기 ${back.sat} (켜기 전 ${before.sat})`);
 if (Math.abs(back.sat - before.sat) > before.sat * 0.05) {
   bad.push(`껐는데 색기가 안 돌아온다 (${before.sat} → ${back.sat})`);

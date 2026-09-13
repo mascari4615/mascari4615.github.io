@@ -27,6 +27,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { atlasPath, isFake } from './lib/atlas-file.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -62,7 +63,13 @@ else {
 /* k 하나만 재고 N차원이다 하면 안 된다. k 탓인지 자료 탓인지 모른다. */
 if (!(D.ours.mle.length >= 3)) bad.push(`MLE 를 이웃 ${D.ours.mle.length}가지로만 쟀다. k 탓인지 자료 탓인지 모른다`);
 /* ⚠ 역수 평균을 안 하면 위로 치우친다. 그 차이를 **싣고 있어야** 한다. */
-if (!(D.ours.naive > 0)) bad.push('역수 평균을 안 했을 때의 값이 안 실려 있다. 보정이 실제로 필요한지 알 수 없다');
+const infinite = D.ours.naive === null && D.ours.naiveState === 'infinite'
+  && Number.isInteger(D.ours.naiveSingular) && D.ours.naiveSingular > 0
+  && D.ours.naiveSamples >= D.ours.naiveSingular && D.ours.naiveSamples <= D.n;
+const fixture = spawnSync(process.execPath, ['--test', path.join(HERE, 'lib/atlas-idim.test.mjs')], { encoding: 'utf8' });
+if (fixture.status !== 0) bad.push('고유차원 유한, 무한, 누락 대조 실패');
+if (infinite) console.log(`  보정 전 평균 발산. 같은 이웃 거리 ${D.ours.naiveSingular}/${D.ours.naiveSamples}곳`);
+else if (!(D.ours.naive > 0) || D.ours.naiveState !== 'finite' || D.ours.naiveSingular !== 0) bad.push('보정 전 값이나 측정 상태 누락');
 else if (D.ours.naive <= k10) {
   bad.push(`역수 평균 보정이 값을 안 낮춘다 (${D.ours.naive} ≤ ${k10}). 보정이 안 걸려 있거나 뒤집혔다`);
 }
