@@ -40,7 +40,7 @@ if (!withWords.length) {
 let docs = [];
 try {
   const mod = await import('./build-memo-atlas.mjs');
-  docs = mod.collect();
+  docs = mod.collectAll();
 } catch (e) {
   console.log('[compare] 글을 못 읽는다. 건너뜀 (' + String(e.message).slice(0, 60) + ')');
   process.exit(0);

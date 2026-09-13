@@ -7235,7 +7235,14 @@ async function nameClusters(groups) {
   return names;
 }
 
-export { collect, collectBookmarksAll, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
+/** 지도 생성과 본문 감사가 같은 소스와 펼친 본문을 읽는다. */
+function collectAll() {
+  const docs = collect().concat(collectBookmarksAll());
+  attachLinkBodies(docs);
+  return docs;
+}
+
+export { collect, collectAll, collectBookmarksAll, gist, title, frontmatter, embedLocal, LOCAL_MODEL, attachLinkBodies };
 
 async function main() {
   requireSources();   // 굽기는 소스가 있어야 한다. config 오류, 없는 root 는 여기서 분명히 죽는다
@@ -7246,8 +7253,7 @@ async function main() {
   if (memoSrc) loadEnvFile(path.join(path.dirname(memoSrc.root), 'Mascari4615.github.io', '.env.txt'));
   loadEnvFile(path.resolve(KARMOLAB, '../../.env.txt'));
 
-  let docs = collect().concat(collectBookmarksAll());
-  attachLinkBodies(docs);
+  let docs = collectAll();
   docs.sort((a, b) => a.id.localeCompare(b.id));
   if (limit) docs = docs.slice(0, limit);
   console.log(`[atlas] 글 ${docs.length}개, 갈래 ${new Set(docs.map((d) => d.lane)).size}개`);

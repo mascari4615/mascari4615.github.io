@@ -36,11 +36,11 @@ const levels = atlas.levels || [];
 if (!levels.length) { console.log('[names] 층이 없다. 건너뜀'); process.exit(0); }
 
 /* 글 본문은 지도에 안 실려 있다(비공개라 제목, 경로만 담는다). 굽는 쪽에서 쓰는
-   collect() 를 그대로 빌려 온다. 같은 글을 보고 재야 한다. */
+   collectAll()을 빌려 와 북마크와 펼친 본문까지 같은 글을 보고 잰다. */
 let docs = [];
 try {
   const mod = await import('./build-memo-atlas.mjs');
-  docs = mod.collect();
+  docs = mod.collectAll();
 } catch (e) {
   console.log('[names] 글을 못 읽는다. 건너뜀 (' + String(e.message).slice(0, 60) + ')');
   process.exit(0);

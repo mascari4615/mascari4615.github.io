@@ -139,13 +139,12 @@ if (!withFit.length) {
 } else if (isFake(ATLAS)) {
   console.log('[name-fit] 가짜 지도다. ②③④ 건너뜀');
 } else {
-  const { collect, collectBookmarksAll, attachLinkBodies } = await import(new URL('./build-memo-atlas.mjs', import.meta.url).href);
-  const docs = collect().concat(collectBookmarksAll());
+  const { collectAll } = await import(new URL('./build-memo-atlas.mjs', import.meta.url).href);
+  const docs = collectAll();
   /* **굽는 쪽과 같은 재료여야 한다.** 북마크 글은 본문이 링크뿐이라, 굽기가 미리 펼쳐 둔
      본문(`.link-bodies.json`)을 붙인다. 그걸 안 붙이고 재면 같은 이름인데 값이 딴판이다 . 
      실제로 bookmark 무리에서 -0.543 vs -0.270 으로 갈렸고, 그걸 실린 값이 틀렸다로
      읽을 뻔했다. 재는 쪽도 같은 손질을 하고 시작한다(셈은 여전히 여기서 따로 한다). */
-  attachLinkBodies(docs);
   const body = new Map(docs.map((d) => [d.id, `${d.title} ${d.text}`]));
   const textsOf = (docs) => docs.map((d) => body.get(d.id)).filter(Boolean);
 
