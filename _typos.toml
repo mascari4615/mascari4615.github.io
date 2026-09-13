@@ -17,6 +17,7 @@ extend-exclude = [
   # (2026-09-04: `2cb9b0b4afe5e3c6` 의 `afe` 를 `safe` 로 읽어 main 이 빨갰다).
   # 위 manifest 와 같은 꼴이라 같은 처분. 낱말을 하나씩 허용하면 다음 해시에서 또 난다.
   "apps/karmolab/data/studymap-atlas.json",
+  "apps/karmolab/data/studymap-atlas-meaning.json",
 
   # 지어낸 지도 자료 — 값이 지어낸 이름·좌표·해시 조각이라 영어 낱말로 오독된다
   # (`ede` → edge, `abd` → and 처럼). 사람이 읽는 글이 아니라 자들이 쓰는 가짜 자료다.
