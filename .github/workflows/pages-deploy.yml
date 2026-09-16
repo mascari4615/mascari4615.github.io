@@ -71,19 +71,19 @@ jobs:
       # 가고, 대기는 **최신 하나만** 남는다(깃허브가 오래된 대기를 스스로 지운다).
       # 그래서 여기서 또 기다릴 이유가 없고, 기다리면 굶는다.
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           # submodules 는 컷오버로 끝. 유일 서브모듈이 chirpy-static-assets(assets/lib) 였다.
 
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       # Setup Ruby 는 Node 조립기 전환으로 소멸 (change.blog-finish ①). 사이트에 Ruby 0.
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: npm
@@ -341,7 +341,7 @@ jobs:
         #      \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/"
 
       - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: "apps/blog/_site${{ steps.pages.outputs.base_path }}"
 
@@ -413,7 +413,7 @@ jobs:
         # 못 박아 놔서 그대로 10분에 끊겼다(로그에 timeout: 1800000 이 찍히고도 정확히 10분).
         # 즉 GitHub 이 10분 안에 못 끝내면 방법이 없다. 우리가 줄일 수 있는 건 꾸러미뿐이라
         # 사진 743MB 를 뺐다(위 단계). 그래도 10분을 넘으면 GitHub 쪽 지연이니 재시도가 답이다.
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       # ★ **바뀐 주소 알림은 배포한 판이 낸다** (2026-08-13). 예전엔 라이브 점검이 냈는데,
       #   그 점검이 배포 꼬리에서 떨어져 나와 시계(30분)로 돌게 되면서 **아무것도 안 바뀐
